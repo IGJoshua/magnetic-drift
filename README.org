@@ -1,0 +1,3 @@
+#+TITLE:Magnetic Drift
+#+AUTHOR:Joshua Suskalo
+#+EMAIL:Joshua@Suskalo.org

@@ -1,0 +1,6 @@
+#+TITLE:Magnetic Drift Technical Design Document
+#+AUTHOR:Joshua Suskalo
+#+EMAIL:Joshua@Suskalo.org
+* Design
+  Magnetic drift is a game where you drive a small car around a maze with different colored walls. The car is attracted to walls which are the same color as the car, and the car can perform a "polarity switch" to change color.
+* Implementation
