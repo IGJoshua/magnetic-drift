@@ -39,6 +39,13 @@
      - Bomb Explosions
 ** Polarity
    The player will always be either red or blue. If the player is blue, they will be attracted to blue walls, and if they are red, they will be attracted to red walls. This should also ideally have some interactions with other items in the game as well. Bombs will probably be allowed to be a specific color, which will make them become attracted to the player (and maybe each other) as well.
+** UI
+   The UI should include sections for playing, viewing leaderboards, and options, as well as view credits and exit.
+*** Options
+    The options menu should include the ability to change the sound and graphics quality. Graphics quality will probably just change how many special effects are included. It should also have an option to go to a menu to select languages.
+**** Languages
+     I want to support multiple languages, and ideally that will just be with simple text files which will map from lines in the file to different places where text needs to appear.
+     Obviously I'll include an english version, but I will also include lojban becuase that's the only other language I understand.
 * Implementation
 ** Collision
    Collision will probably be done by using a spatial hash or a quad tree. I'm thinking a quad tree personally. The size of the leaf portions of the quad tree will be a single tile.
