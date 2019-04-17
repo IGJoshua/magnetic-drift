@@ -26,4 +26,19 @@
 
 ** Game Mode
    Games will be done as time-trials, where it will save the time that you've done. If I have extra time, I could also add phantom vehicles for the previous best time, and maybe even include a baseline "par" which would be me deliberately doing mediocre (because I imagine that by the end of the jam I'll be pretty good at this). Leaderboard should also include my best times for each level, but the phantom for that should be a special thing which you can enable/disable, because if it's particularly good, then it may prevent you from effectively viewing your personal best.
-  
+   
+** Visual effects
+   I'm thinking there needs to be significant visual effects which occur in the game in order to make sure it has adequate punch, making it more fun to play.
+   
+   - Collisions
+     - Walls
+     - Tires
+   - Oil Slick Trails
+   - Camera Shakes
+     - Wall Collisions
+     - Bomb Explosions
+** Polarity
+
+* Implementation
+** Collision
+   Collision will probably be done by using a spatial hash or a quad tree. I'm thinking a quad tree personally. The size of the leaf portions of the quad tree will be a single tile.
