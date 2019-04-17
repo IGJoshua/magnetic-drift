@@ -38,7 +38,7 @@
      - Wall Collisions
      - Bomb Explosions
 ** Polarity
-
+   The player will always be either red or blue. If the player is blue, they will be attracted to blue walls, and if they are red, they will be attracted to red walls. This should also ideally have some interactions with other items in the game as well. Bombs will probably be allowed to be a specific color, which will make them become attracted to the player (and maybe each other) as well.
 * Implementation
 ** Collision
    Collision will probably be done by using a spatial hash or a quad tree. I'm thinking a quad tree personally. The size of the leaf portions of the quad tree will be a single tile.
