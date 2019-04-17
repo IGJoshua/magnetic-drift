@@ -6,7 +6,9 @@
 
 ** Movement
    Basic movement with tank controls using ~wasd~, break with ~Left Shift~. Press ~e~ to swap polarity. Ideally drifting will be possible, which will justify the name of the game.
+   
    With drifting, I'll have to simulate effectively two points on the car, and handle basically two contact points. Each contact point will have a direction which is "with the grain" where it will offer little to no friction. They will also have a direction which is "against the grain" which will offer significantly more friction, however if you slide into a drift that friction will be significantly reduced. The front contact point will allow you to control exactly which direction the grain is by steering, and the rear will not allow steering, but will have a reduced "cross-grain" friction and will be what pushes the vehicle forwards.
+   
    In order for drifting to really feel good, I'm probably going to need controller support to allow you to not have to always have the wheels fully turned or not at all.
 
 ** Camera
@@ -45,6 +47,7 @@
     The options menu should include the ability to change the sound and graphics quality. Graphics quality will probably just change how many special effects are included. It should also have an option to go to a menu to select languages.
 **** Languages
      I want to support multiple languages, and ideally that will just be with simple text files which will map from lines in the file to different places where text needs to appear.
+     
      Obviously I'll include an english version, but I will also include lojban becuase that's the only other language I understand.
 * Implementation
 ** Collision
