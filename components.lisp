@@ -26,7 +26,9 @@
 
 (defclass camera-component (component)
   ((zoom :initarg :zoom :accessor zoom
-         :initform 0.1)))
+         :initform 0.1)
+   (active-p :initarg :active-p :accessor active-p
+             :initform nil)))
 
 (defmethod copy-component ((comp camera-component))
   (make-instance 'camera-component
