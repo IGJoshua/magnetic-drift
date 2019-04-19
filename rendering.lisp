@@ -1,5 +1,7 @@
 ;;;; rendering.lisp
 
+(in-package #:magnetic-drift)
+
 (defvar *quad-stream* nil)
 (defvar *textures* nil)
 
