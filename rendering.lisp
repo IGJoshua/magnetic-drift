@@ -6,6 +6,8 @@
 (defvar *textures* nil)
 (defvar *blending-params* nil)
 
+(defparameter *scene-render-systems* '(resize-viewport clear-fbo render-car swap))
+
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
     tex
@@ -80,14 +82,25 @@
   (unless *blending-params*
     (setf *blending-params* (make-blending-params))))
 
-(defun render (alpha)
+(define-global-system resize-viewport (alpha)
   (declare (ignore alpha))
-  (clear)
   (setf (cepl:viewport-resolution (current-viewport))
-        (surface-resolution (current-surface (cepl-context))))
+        (surface-resolution (current-surface (cepl-context)))))
+
+(define-global-system clear-fbo (alpha)
+  (declare (ignore alpha))
+  (clear-fbo (fbo-bound (cepl-context))))
+
+(define-global-system swap (alpha)
+  (declare (ignore alpha))
+  (swap))
+
+(define-component-system render-car (entity-id alpha)
+    (position-component) (camera-component)
+  (declare (ignore alpha))
   (let* ((tex (texture "./res/car_blue_1.png"))
          (sam (sample tex))
-         (pos-comp (get-component *car* 'position-component)))
+         (pos-comp (get-component entity-id 'position-component)))
     (destructuring-bind (x y) (texture-base-dimensions tex)
       (with-blending *blending-params*
         (map-g #'textured-object-quad *quad-stream*
@@ -100,5 +113,8 @@
                                          (let ((scale (/ (zoom (get-component *camera* 'camera-component)))))
                                            (v! scale scale)))
                :view->projection (ortho-projection)
-               :sam sam))))
-  (swap))
+               :sam sam)))))
+
+(defun render (alpha)
+  (loop :for system :in *scene-render-systems*
+        :do (run-system system alpha)))
