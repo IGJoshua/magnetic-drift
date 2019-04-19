@@ -55,8 +55,8 @@
     (rtg-math.projection:orthographic (float x) (float y) 0.1 1000.0)))
 
 (defun view-matrix (pos scale)
-  (m! (/ (x scale)) 0 0 (- (x pos))
-      0 (/ (y scale)) 0 (- (y pos))
+  (m! (/ (x scale)) 0 0 (/ (- (x pos)) (x scale))
+      0 (/ (y scale)) 0 (/ (- (y pos)) (y scale))
       0 0 1 0
       0 0 0 1))
 
@@ -77,7 +77,9 @@
                                  0 1 0 0
                                  0 0 1 0
                                  0 0 0 1)
-               :world->view (view-matrix (v! 0 0) (v! 5 5))
+               :world->view (view-matrix (pos *camera*)
+                                         (let ((scale (/ (zoom *camera*))))
+                                           (v! scale scale)))
                :view->projection (ortho-projection)
                :sam sam)))
   (swap))
