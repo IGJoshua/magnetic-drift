@@ -63,6 +63,11 @@
       0 0 1 0
       0 0 0 1))
 
+(defun world-matrix (pos rot scale)
+  (rtg-math.matrix4:* (rtg-math.matrix4:translation (v! pos 0))
+                      (rtg-math.matrix4:rotation-z (float rot))
+                      (rtg-math.matrix4:scale (v! scale 1))))
+
 (defun set-clear-color-int (r g b)
   (setf (clear-color) (v! (/ r 255) (/ g 255) (/ b 255) 1)))
 
@@ -90,10 +95,7 @@
                                 0 y 0 0
                                 0 0 1 0
                                 0 0 0 1)
-               :model->world (m! 1 0 0 (x (pos pos-comp))
-                                 0 1 0 (y (pos pos-comp))
-                                 0 0 1 0
-                                 0 0 0 1)
+               :model->world (world-matrix (pos pos-comp) 0 (v! 1 1))
                :world->view (view-matrix (pos (get-component *camera* 'position-component))
                                          (let ((scale (/ (zoom (get-component *camera* 'camera-component)))))
                                            (v! scale scale)))
