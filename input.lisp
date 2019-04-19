@@ -32,3 +32,7 @@
           (y (cam-dir *input*)) y)
     (v2-n:normalize (cam-dir *input*)))
   (setf (brake *input*) (cepl.skitter:key-down-p cepl.skitter:key.lshift)))
+
+(defun init-input ()
+  (unless *input*
+    (setf *input* (make-instance 'input))))

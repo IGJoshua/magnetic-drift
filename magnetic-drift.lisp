@@ -36,16 +36,17 @@
   (loop :for system :in *scene-physics-systems*
         :do (run-system system dt)))
 
+(defun spawn-default-entities ()
+  (instantiate-prototype 'camera)
+  (instantiate-prototype 'car))
+
 (defun init ()
   (init-entities)
+  (when (zerop (length (cepl-utils:hash-keys *entities*)))
+    (spawn-default-entities))
   (init-systems)
   (init-renderer)
-  (unless *camera*
-    (setf *camera* (instantiate-prototype 'camera)))
-  (unless *car*
-    (setf *car* (instantiate-prototype 'car)))
-  (unless *input*
-    (setf *input* (make-instance 'input))))
+  (init-input))
 
 (defun run-loop ()
   (init)
