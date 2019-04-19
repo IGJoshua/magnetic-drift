@@ -35,9 +35,10 @@
                                                  :do (let ((,superprototype (gethash ,prototype *prototypes*)))
                                                        (funcall (slot-value ,superprototype 'instantiation-fun)
                                                                 ,entity-id)))
-                                           ,@(loop :for component :in (mapcar (lambda (comp)
-                                                                                `(make-instance ',(car comp) ,@(cdr comp)))
-                                                                              components)
+                                           ,@(loop :for component
+                                                     :in (mapcar (lambda (comp)
+                                                                   `(make-instance ',(car comp) ,@(cdr comp)))
+                                                                 components)
                                                    :collect `(add-component ,entity-id ,component))
                                            ,entity-id)))))
 
