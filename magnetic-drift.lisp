@@ -5,8 +5,9 @@
 (defvar *running* nil)
 
 (defvar *camera* nil)
-(defparameter *scene-systems* '(global-move-camera move-cars))
 (defvar *car* nil)
+
+(defparameter *scene-physics-systems* '(global-move-camera move-cars))
 
 (define-global-system global-move-camera (dt)
   (v2-n:+ (pos (get-component *camera* 'position-component))
@@ -32,8 +33,8 @@
   (step-host)
   (update-repl-link)
   (handle-input)
-  (loop :for system :in *scene-systems*
-        :do (run-system (gethash system *systems*) dt)))
+  (loop :for system :in *scene-physics-systems*
+        :do (run-system system dt)))
 
 (defun init ()
   (init-entities)

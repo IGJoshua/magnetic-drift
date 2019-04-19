@@ -17,14 +17,16 @@
 (defclass global-system (system)
   ())
 
-(defgeneric run-system (system dt))
+(defgeneric %run-system (system dt))
+(defun run-system (system-sym dt)
+  (%run-system (gethash system-sym *systems*) dt))
 
-(defmethod run-system ((system component-system) dt)
+(defmethod %run-system ((system component-system) dt)
   (loop :for entity :in (cepl-utils:hash-keys *entities*)
         :do (when (components-match-p system entity)
               (funcall (system-fun system) entity dt))))
 
-(defmethod run-system ((system global-system) dt)
+(defmethod %run-system ((system global-system) dt)
   (funcall (system-fun system) dt))
 
 (defmacro define-component-system (name lambda-list
