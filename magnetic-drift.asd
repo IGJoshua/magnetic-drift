@@ -14,6 +14,7 @@
   :components ((:file "package")
                (:file "input")
                (:file "objects")
+               (:file "components")
                (:file "systems")
                (:file "rendering")
                (:file "magnetic-drift")))

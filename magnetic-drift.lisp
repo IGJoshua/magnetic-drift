@@ -38,7 +38,7 @@
   (init-systems)
   (init-renderer)
   (unless *camera*
-    (setf *camera* (make-camera)))
+    (setf *camera* (instantiate-prototype 'camera)))
   (unless *car*
     (setf *car* (instantiate-prototype 'car)))
   (unless *input*
