@@ -12,4 +12,5 @@
                #:rtg-math #:rtg-math.vari
                #:livesupport #:temporal-functions)
   :components ((:file "package")
+               (:file "rendering")
                (:file "magnetic-drift")))
