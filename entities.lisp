@@ -45,3 +45,10 @@
   (let ((entity-id (make-entity)))
     (funcall (slot-value (gethash prototype *prototypes*) 'instantiation-fun) entity-id)
     entity-id))
+
+(defun init-entities ()
+  (unless *entities*
+    (setf *entities* (make-hash-table))
+    (setf *next-entity-id* 1)
+    (setf *camera* nil)
+    (setf *car* nil)))

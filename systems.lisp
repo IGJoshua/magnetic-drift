@@ -51,10 +51,5 @@
          (not (intersection (exclude-components system) keyset)))))
 
 (defun init-systems ()
-  (unless *entities*
-    (setf *entities* (make-hash-table))
-    (setf *next-entity-id* 1)
-    (setf *camera* nil)
-    (setf *car* nil))
   (unless *systems*
     (setf *systems* (make-hash-table))))

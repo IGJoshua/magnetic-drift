@@ -35,6 +35,7 @@
         :do (run-system (gethash system *systems*) dt)))
 
 (defun init ()
+  (init-entities)
   (init-systems)
   (init-renderer)
   (unless *camera*
