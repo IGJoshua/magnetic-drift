@@ -2,8 +2,9 @@
 
 (in-package #:magnetic-drift)
 
-(defvar *camera* nil)
 (defvar *running* nil)
+
+(defvar *camera* nil)
 (defparameter *scene-systems* '(global-move-camera move-cars))
 (defvar *car* nil)
 
