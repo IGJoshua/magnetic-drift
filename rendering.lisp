@@ -60,7 +60,8 @@
       0 0 1 0
       0 0 0 1))
 
-(defun render ()
+(defun render (dt)
+  (declare (ignore dt))
   (clear)
   (setf (cepl:viewport-resolution (current-viewport))
         (surface-resolution (current-surface (cepl-context))))
