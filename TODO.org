@@ -3,4 +3,54 @@
 #+EMAIL:Joshua@Suskalo.org
 * Design
   Magnetic drift is a game where you drive a small car around a maze with different colored walls. The car is attracted to walls which are the same color as the car, and the car can perform a "polarity switch" to change color.
+
+** Movement
+   Basic movement with tank controls using ~wasd~, break with ~Left Shift~. Press ~e~ to swap polarity. Ideally drifting will be possible, which will justify the name of the game.
+   
+   With drifting, I'll have to simulate effectively two points on the car, and handle basically two contact points. Each contact point will have a direction which is "with the grain" where it will offer little to no friction. They will also have a direction which is "against the grain" which will offer significantly more friction, however if you slide into a drift that friction will be significantly reduced. The front contact point will allow you to control exactly which direction the grain is by steering, and the rear will not allow steering, but will have a reduced "cross-grain" friction and will be what pushes the vehicle forwards.
+   
+   In order for drifting to really feel good, I'm probably going to need controller support to allow you to not have to always have the wheels fully turned or not at all.
+
+** Camera
+   Camera movement will be interesting to handle. It should in theory not be required if players are playing at a decent resolution, but I need to detect to see if the screen is so small that it can't show the entire level at once, in which case it will pan around. This should also account for strange aspect ratios played at because of tiling window managers or whatever else.
+
+** Environment
+   Include basic tile-based maps, with tiles for sides and diagonals. Walls can be red, blue, or gray. Gray walls have no significant impact on the player, but red and blue walls with attract or repel the player depending on which polarity the player is. If the player is blue, they will be attracted to blue walls, and if they are red, they will be pushed by blue walls. The same is true for red, but in reverse.
+
+*** Objects
+    - Tires :: Tires will just bump around and let you not collide directly with the wall.
+    - Bombs :: Bombs will damage the vehicle, which will cause it to move more slowly and sluggishly, and if the vehicle is hit multiple times then it may kill the car.
+               Bombs should also be of different colors, so that you can repel or attract some of them depending on your color.
+    - Oil Slicks :: Oil Slicks cause you to slide around and make you lose traction for a while (and this is a good opportunity for effects, because it could also leave streaks)
+
+*** Editor
+    Ideally there will eventually be an in-game level editor, and a way to serialize and deserialize said levels so they can be shared between games. The save files should also not be os-specific, so that should mean that linux save files will work on windows, and vice versa. This probably is an irrelevant concern, but I just want to make sure that the library used doesn't do that.
+
+** Game Mode
+   Games will be done as time-trials, where it will save the time that you've done. If I have extra time, I could also add phantom vehicles for the previous best time, and maybe even include a baseline "par" which would be me deliberately doing mediocre (because I imagine that by the end of the jam I'll be pretty good at this). Leaderboard should also include my best times for each level, but the phantom for that should be a special thing which you can enable/disable, because if it's particularly good, then it may prevent you from effectively viewing your personal best.
+   
+** Visual effects
+   I'm thinking there needs to be significant visual effects which occur in the game in order to make sure it has adequate punch, making it more fun to play.
+   
+   - Collisions
+     - Walls
+     - Tires
+   - Oil Slick Trails
+   - Camera Shakes
+     - Wall Collisions
+     - Bomb Explosions
+** Polarity
+   The player will always be either red or blue. If the player is blue, they will be attracted to blue walls, and if they are red, they will be attracted to red walls. This should also ideally have some interactions with other items in the game as well. Bombs will probably be allowed to be a specific color, which will make them become attracted to the player (and maybe each other) as well.
+** UI
+   The UI should include sections for playing, viewing leaderboards, and options, as well as view credits and exit.
+*** Options
+    The options menu should include the ability to change the sound and graphics quality. Graphics quality will probably just change how many special effects are included. It should also have an option to go to a menu to select languages.
+**** Languages
+     I want to support multiple languages, and ideally that will just be with simple text files which will map from lines in the file to different places where text needs to appear.
+     
+     Obviously I'll include an english version, but I will also include lojban becuase that's the only other language I understand.
 * Implementation
+** Collision
+   Collision will probably be done by using a spatial hash or a quad tree. I'm thinking a quad tree personally. The size of the leaf portions of the quad tree will be a single tile.
+** UI
+   I'm thinking I'll need a good UI library that already has text rendering, buttons, text boxes, and scroll bars figured out. I'm so far thinking nuklear could be a good option, but I'm not entirely sure yet. Otherwise I might have to generate some signed distance fields and use them to render some text with my own shaders, although that still leaves me with the problem of rendering all the individual characters, which shouldn't be too hard to do with just some instance data and making each text element be a single draw call, instead of each character, but still, I'll avoid it if I can.
