@@ -80,8 +80,8 @@
   (unless *blending-params*
     (setf *blending-params* (make-blending-params))))
 
-(defun render (dt)
-  (declare (ignore dt))
+(defun render (alpha)
+  (declare (ignore alpha))
   (clear)
   (setf (cepl:viewport-resolution (current-viewport))
         (surface-resolution (current-surface (cepl-context))))
