@@ -68,6 +68,10 @@
 
 (defun init-renderer ()
   (setf (clear-color) (v! 0.57254905 0.65882355 0.7176471 1.0))
+  (unless *quad-stream*
+    (setf *quad-stream* (nineveh:get-quad-stream-v2)))
+  (unless *textures*
+    (setf *textures* (make-hash-table :test 'equal)))
   (unless *blending-params*
     (setf *blending-params* (make-blending-params))))
 
@@ -89,8 +93,8 @@
                                  0 1 0 0
                                  0 0 1 0
                                  0 0 0 1)
-               :world->view (view-matrix (pos *camera*)
-                                         (let ((scale (/ (zoom *camera*))))
+               :world->view (view-matrix (pos (get-component *camera* 'position-component))
+                                         (let ((scale (/ (zoom (get-component *camera* 'camera-component)))))
                                            (v! scale scale)))
                :view->projection (ortho-projection)
                :sam sam))))

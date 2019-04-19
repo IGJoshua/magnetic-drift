@@ -2,6 +2,7 @@
 
 (in-package #:magnetic-drift)
 
+(defvar *camera* nil)
 (defvar *running* nil)
 
 (defun update (dt)
@@ -11,15 +12,12 @@
   (v2-n:+ (pos *camera*) (v2:*s (v2:*s (cam-dir *input*) (* 10000.0 (if (brake *input*) 0.1 1.0))) dt)))
 
 (defun init ()
-  (unless *quad-stream*
-    (setf *quad-stream* (nineveh:get-quad-stream-v2)))
-  (unless *textures*
-    (setf *textures* (make-hash-table :test 'equal)))
+  (init-systems)
+  (init-renderer)
   (unless *camera*
-    (setf *camera* (make-instance 'camera)))
+    (setf *camera* (make-camera)))
   (unless *input*
-    (setf *input* (make-instance 'input)))
-  (init-renderer))
+    (setf *input* (make-instance 'input))))
 
 (defun run-loop ()
   (init)
