@@ -8,4 +8,4 @@
   ((pos :initargs :pos :accessor pos
         :initform (v! 0 0))
    (zoom :initargs :zoom :accessor zoom
-         :initform 1)))
+         :initform 0.1)))

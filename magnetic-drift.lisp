@@ -37,7 +37,8 @@
   (unless *camera*
     (setf *camera* (make-instance 'camera)))
   (unless *input*
-    (setf *input* (make-instance 'input))))
+    (setf *input* (make-instance 'input)))
+  (init-renderer))
 
 (defun run-loop ()
   (init)

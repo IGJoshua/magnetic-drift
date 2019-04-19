@@ -4,6 +4,7 @@
 
 (defvar *quad-stream* nil)
 (defvar *textures* nil)
+(defvar *blending-params* nil)
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
@@ -62,6 +63,11 @@
       0 0 1 0
       0 0 0 1))
 
+(defun init-renderer ()
+  (setf (clear-color) (v! 1.0 1.0 1.0 1))
+  (unless *blending-params*
+    (setf *blending-params* (make-blending-params))))
+
 (defun render (dt)
   (declare (ignore dt))
   (clear)
@@ -70,6 +76,7 @@
   (let* ((tex (texture "./res/car_blue_1.png"))
          (sam (sample tex)))
     (destructuring-bind (x y) (texture-base-dimensions tex)
+      (with-blending *blending-params*
         (map-g #'textured-object-quad *quad-stream*
                :quad->model (m! x 0 0 0
                                 0 y 0 0
@@ -83,5 +90,5 @@
                                          (let ((scale (/ (zoom *camera*))))
                                            (v! scale scale)))
                :view->projection (ortho-projection)
-               :sam sam)))
+               :sam sam))))
   (swap))
