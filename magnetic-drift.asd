@@ -12,6 +12,7 @@
                #:rtg-math #:rtg-math.vari
                #:livesupport #:temporal-functions)
   :components ((:file "package")
+               (:file "input")
                (:file "objects")
                (:file "rendering")
                (:file "magnetic-drift")))
