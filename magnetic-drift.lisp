@@ -3,42 +3,50 @@
 (in-package #:magnetic-drift)
 
 (defvar *running* nil)
-(defvar *input* nil)
 
-(defclass input ()
-  ((dir :accessor dir
-        :initform (v! 0 0))
-   (brake :accessor brake
-          :initform nil)))
+(defvar *camera* nil)
+(defvar *car* nil)
 
-(defun handle-input ()
-  (let* ((w (if (cepl.skitter:key-down-p cepl.skitter:key.w) 1.0 0.0))
-         (a (if (cepl.skitter:key-down-p cepl.skitter:key.a) 1.0 0.0))
-         (s (if (cepl.skitter:key-down-p cepl.skitter:key.s) 1.0 0.0))
-         (d (if (cepl.skitter:key-down-p cepl.skitter:key.d) 1.0 0.0))
-         (x (+ (- a) d))
-         (y (+ (- s) w)))
-    (setf (x (dir *input*)) x
-          (y (dir *input*)) y)
-    (v2-n:normalize (dir *input*)))
-  (setf (brake *input*) (cepl.skitter:key-down-p cepl.skitter:key.lshift)))
+(defparameter *scene-physics-systems* '(global-move-camera move-cars))
+
+(define-global-system global-move-camera (dt)
+  (v2-n:+ (pos (get-component *camera* 'position-component))
+          (v2:*s (cam-dir *input*)
+                 (* 10000.0 dt
+                    (if (brake *input*)
+                        0.1 1.0)))))
+
+(defclass player-movement-component (component)
+  ())
+
+(define-component-system move-cars (entity-id dt)
+    (position-component player-movement-component) ()
+  (v2-n:+ (pos (get-component entity-id 'position-component))
+          (v2:*s (dir *input*)
+                 (* 1000.0 dt))))
+
+(define-prototype car ()
+  ((position-component)
+   (player-movement-component)))
 
 (defun update (dt)
   (step-host)
   (update-repl-link)
   (handle-input)
-  (v2-n:+ (pos *camera*) (v2:*s (v2:*s (dir *input*) (* 1000.0 (if (brake *input*) 0.1 1.0))) dt)))
+  (loop :for system :in *scene-physics-systems*
+        :do (run-system system dt)))
+
+(defun spawn-default-entities ()
+  (instantiate-prototype 'camera)
+  (instantiate-prototype 'car))
 
 (defun init ()
-  (unless *quad-stream*
-    (setf *quad-stream* (nineveh:get-quad-stream-v2)))
-  (unless *textures*
-    (setf *textures* (make-hash-table :test 'equal)))
-  (unless *camera*
-    (setf *camera* (make-instance 'camera)))
-  (unless *input*
-    (setf *input* (make-instance 'input)))
-  (init-renderer))
+  (init-entities)
+  (when (zerop (length (cepl-utils:hash-keys *entities*)))
+    (spawn-default-entities))
+  (init-systems)
+  (init-renderer)
+  (init-input))
 
 (defun run-loop ()
   (init)

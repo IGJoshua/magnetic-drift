@@ -12,6 +12,9 @@
                #:rtg-math #:rtg-math.vari
                #:livesupport #:temporal-functions)
   :components ((:file "package")
-               (:file "objects")
+               (:file "input")
+               (:file "entities")
+               (:file "components")
+               (:file "systems")
                (:file "rendering")
                (:file "magnetic-drift")))
