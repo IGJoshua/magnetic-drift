@@ -7,12 +7,14 @@
 (defgeneric copy-component (component))
 
 (defun add-component (entity-id component)
-  (setf (gethash (type-of component) (slot-value (gethash entity-id *entities*) 'components))
-        component)
-  entity-id)
+  (when entity-id
+    (setf (gethash (type-of component) (slot-value (gethash entity-id *entities*) 'components))
+          component)
+    entity-id))
 
 (defun get-component (entity-id component-name)
-  (gethash component-name (slot-value (gethash entity-id *entities*) 'components)))
+  (when entity-id
+    (gethash component-name (slot-value (gethash entity-id *entities*) 'components))))
 
 (defclass position-component (component)
   ((pos :initarg :pos :accessor pos
