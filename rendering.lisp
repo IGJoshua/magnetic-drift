@@ -63,8 +63,11 @@
       0 0 1 0
       0 0 0 1))
 
+(defun set-clear-color-int (r g b)
+  (setf (clear-color) (v! (/ r 255) (/ g 255) (/ b 255) 1)))
+
 (defun init-renderer ()
-  (setf (clear-color) (v! 1.0 1.0 1.0 1))
+  (setf (clear-color) (v! 0.57254905 0.65882355 0.7176471 1.0))
   (unless *blending-params*
     (setf *blending-params* (make-blending-params))))
 
