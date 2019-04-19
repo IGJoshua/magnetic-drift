@@ -32,3 +32,6 @@
   (make-instance 'camera-component
                  :zoom (zoom comp)))
 
+(define-prototype camera ()
+  ((camera-component :zoom 0.1 :active-p t)
+   (position-component)))

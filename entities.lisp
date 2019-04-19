@@ -37,10 +37,6 @@
                                                    :collect `(add-component ,entity-id ,component))
                                            ,entity-id)))))
 
-(define-prototype camera ()
-  ((camera-component :zoom 0.1)
-   (position-component)))
-
 (defun instantiate-prototype (prototype)
   (let ((entity-id (make-entity)))
     (funcall (slot-value (gethash prototype *prototypes*) 'instantiation-fun) entity-id)
