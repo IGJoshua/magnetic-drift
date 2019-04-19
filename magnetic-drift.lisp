@@ -4,12 +4,14 @@
 
 (defvar *camera* nil)
 (defvar *running* nil)
+(defparameter *scene-systems* '(global-move-camera move-cars))
 
 (defun update (dt)
   (step-host)
   (update-repl-link)
   (handle-input)
-  (v2-n:+ (pos *camera*) (v2:*s (v2:*s (cam-dir *input*) (* 10000.0 (if (brake *input*) 0.1 1.0))) dt)))
+  (loop :for system :in *scene-systems*
+        :do (run-system (gethash system *systems*) dt)))
 
 (defun init ()
   (init-systems)
