@@ -7,7 +7,9 @@
 
 (defclass input ()
   ((dir :accessor dir
-        :initform (v! 0 0))))
+        :initform (v! 0 0))
+   (brake :accessor brake
+          :initform nil)))
 
 (defun handle-input ()
   (let* ((w (if (cepl.skitter:key-down-p cepl.skitter:key.w) 1.0 0.0))
@@ -18,13 +20,14 @@
          (y (+ (- s) w)))
     (setf (x (dir *input*)) x
           (y (dir *input*)) y)
-    (v2-n:normalize (dir *input*))))
+    (v2-n:normalize (dir *input*)))
+  (setf (brake *input*) (cepl.skitter:key-down-p cepl.skitter:key.lshift)))
 
 (defun update (dt)
   (step-host)
   (update-repl-link)
   (handle-input)
-  (v2-n:+ (pos *camera*) (v2:*s (v2:*s (dir *input*) 100.0) dt)))
+  (v2-n:+ (pos *camera*) (v2:*s (v2:*s (dir *input*) (* 1000.0 (if (brake *input*) 0.1 1.0))) dt)))
 
 (defun init ()
   (unless *quad-stream*
