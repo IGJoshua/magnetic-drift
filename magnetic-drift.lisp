@@ -4,6 +4,7 @@
 
 (defvar *running* nil)
 (defvar *camera* nil)
+(defvar *input* nil)
 
 (defclass camera ()
   ((pos :initargs :pos :accessor pos
@@ -11,10 +12,26 @@
    (zoom :initargs :zoom :accessor zoom
          :initform 1)))
 
+(defclass input ()
+  ((dir :accessor dir
+        :initform (v! 0 0))))
+
+(defun handle-input ()
+  (let* ((w (if (cepl.skitter:key-down-p cepl.skitter:key.w) 1.0 0.0))
+         (a (if (cepl.skitter:key-down-p cepl.skitter:key.a) 1.0 0.0))
+         (s (if (cepl.skitter:key-down-p cepl.skitter:key.s) 1.0 0.0))
+         (d (if (cepl.skitter:key-down-p cepl.skitter:key.d) 1.0 0* .0))
+         (x (+ (- a) d))
+         (y (+ (- s) w)))
+    (setf (x (dir *input*)) x
+          (y (dir *input*)) y)
+    (v2-n:normalize (dir *input*))))
+
 (defun update (dt)
-  (declare (ignore dt))
   (step-host)
-  (update-repl-link))
+  (update-repl-link)
+  (handle-input)
+  (v2-n:+ (pos *camera*) (v2:*s (v2:*s (dir *input*) 100.0) dt)))
 
 (defun init ()
   (unless *quad-stream*
@@ -22,14 +39,16 @@
   (unless *textures*
     (setf *textures* (make-hash-table :test 'equal)))
   (unless *camera*
-    (setf *camera* (make-instance 'camera))))
+    (setf *camera* (make-instance 'camera)))
+  (unless *input*
+    (setf *input* (make-instance 'input))))
 
 (defun run-loop ()
   (init)
   (slynk-mrepl::send-prompt (find (bt:current-thread) (slynk::channels)
                                   :key #'slynk::channel-thread))
   (setf *running* t)
-  (let* ((fps 12.0)
+  (let* ((fps 120.0)
          (seconds-per-frame (/ fps))
          (seconds-per-internal-unit (/ internal-time-units-per-second))
          (last-frame-seconds 0.0)
