@@ -5,6 +5,27 @@
 (defvar *camera* nil)
 (defvar *running* nil)
 (defparameter *scene-systems* '(global-move-camera move-cars))
+(defvar *car* nil)
+
+(define-global-system global-move-camera (dt)
+  (v2-n:+ (pos (get-component *camera* 'position-component))
+          (v2:*s (cam-dir *input*)
+                 (* 10000.0 dt
+                    (if (brake *input*)
+                        0.1 1.0)))))
+
+(defclass player-movement-component (component)
+  ())
+
+(define-component-system move-cars (entity-id dt)
+    (position-component player-movement-component) ()
+  (v2-n:+ (pos (get-component entity-id 'position-component))
+          (v2:*s (dir *input*)
+                 (* 1000.0 dt))))
+
+(define-prototype car ()
+  ((position-component)
+   (player-movement-component)))
 
 (defun update (dt)
   (step-host)
@@ -18,6 +39,8 @@
   (init-renderer)
   (unless *camera*
     (setf *camera* (make-camera)))
+  (unless *car*
+    (setf *car* (instantiate-prototype 'car)))
   (unless *input*
     (setf *input* (make-instance 'input))))
 

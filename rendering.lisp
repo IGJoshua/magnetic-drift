@@ -81,7 +81,8 @@
   (setf (cepl:viewport-resolution (current-viewport))
         (surface-resolution (current-surface (cepl-context))))
   (let* ((tex (texture "./res/car_blue_1.png"))
-         (sam (sample tex)))
+         (sam (sample tex))
+         (pos-comp (get-component *car* 'position-component)))
     (destructuring-bind (x y) (texture-base-dimensions tex)
       (with-blending *blending-params*
         (map-g #'textured-object-quad *quad-stream*
@@ -89,8 +90,8 @@
                                 0 y 0 0
                                 0 0 1 0
                                 0 0 0 1)
-               :model->world (m! 1 0 0 0
-                                 0 1 0 0
+               :model->world (m! 1 0 0 (x (pos pos-comp))
+                                 0 1 0 (y (pos pos-comp))
                                  0 0 1 0
                                  0 0 0 1)
                :world->view (view-matrix (pos (get-component *camera* 'position-component))
