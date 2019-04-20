@@ -16,13 +16,40 @@
   (when entity-id
     (gethash component-name (slot-value (gethash entity-id *entities*) 'components))))
 
+(defmacro with-components (component-list entity-id &body body)
+  (let ((id (gensym)))
+    `(let ((,id ,entity-id))
+       (let (,@(mapcar (lambda (elt)
+                         (destructuring-bind (sym comp-sym) elt
+                           `(,sym (get-component ,id ',comp-sym))))
+                       component-list))
+         ,@body))))
+
 (defclass position-component (component)
-  ((pos :initarg :pos :accessor pos
+  ((pos :initarg :pos
         :initform (v! 0 0))))
 
 (defmethod copy-component ((comp position-component))
-  (make-instance 'position-component
-                 :pos (v! (x (pos comp)) (y (pos comp)))))
+  (with-slots (pos) comp
+      (make-instance 'position-component
+                     :pos (v! (x pos) (y comp)))))
+
+(defclass rotation-component (component)
+  ((rot :initarg :rot
+        :initform 0)))
+
+(defmethod copy-component ((comp rotation-component))
+  (make-instance 'rotation-component
+                 :rot (slot-value comp 'rot)))
+
+(defclass scale-component (component)
+  ((scale :initarg :scale
+          :initform (v! 1 1))))
+
+(defmethod copy-component ((comp scale-component))
+  (with-slots (scale) comp
+    (make-instance 'scale-component
+                   :scale (v! (x scale) (y scale)))))
 
 (defclass camera-component (component)
   ((zoom :initarg :zoom :accessor zoom
