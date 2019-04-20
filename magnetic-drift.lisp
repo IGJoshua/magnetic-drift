@@ -28,7 +28,8 @@
 (define-prototype car ()
   ((position-component)
    (player-movement-component)
-   (rotation-component)))
+   (rotation-component)
+   (scale-component)))
 
 (defun update (dt)
   (step-host)

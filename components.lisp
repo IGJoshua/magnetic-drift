@@ -42,6 +42,15 @@
   (make-instance 'rotation-component
                  :rot (slot-value comp 'rot)))
 
+(defclass scale-component (component)
+  ((scale :initarg :scale
+          :initform (v! 1 1))))
+
+(defmethod copy-component ((comp scale-component))
+  (with-slots (scale) comp
+    (make-instance 'scale-component
+                   :scale (v! (x scale) (y scale)))))
+
 (defclass camera-component (component)
   ((zoom :initarg :zoom :accessor zoom
          :initform 0.1)
