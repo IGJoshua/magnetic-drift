@@ -124,10 +124,13 @@
                              (sin right)))
                   (forward-speed (v2:dot vel forward))
                   (right-speed (v2:dot vel right))
-                  (forward-speed (* forward-speed
-                                    low-coeff
-                                    dt))
-                  (right-speed (* right-speed high-coeff dt)))
+                  (forward-speed (* forward-speed low-coeff dt))
+                  (right-speed (* right-speed
+                                  (- high-coeff
+                                     (* (/ high-coeff 1.4)
+                                        (v2:absolute-dot right
+                                                         (v2:normalize vel))))
+                                  dt)))
              (v2-n:+ (v2-n:*s forward forward-speed)
                      (v2-n:*s right right-speed)))))))))
 
