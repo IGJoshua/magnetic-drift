@@ -18,6 +18,9 @@
 (defun entity-exists-p (entity-id)
   (gethash entity-id *entities*))
 
+(defun destroy-entity (entity-id)
+  (remhash entity-id *entities*))
+
 (defvar *prototypes* (make-hash-table :test 'eq))
 (defclass prototype ()
   ((instantiation-fun :initarg :instantiation-fun)))
