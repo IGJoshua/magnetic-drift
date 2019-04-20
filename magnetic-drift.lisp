@@ -7,7 +7,8 @@
 (defvar *camera* nil)
 (defvar *car* nil)
 
-(defparameter *scene-physics-systems* '(global-move-camera update-car-velocity
+(defparameter *scene-physics-systems* '(global-move-camera
+                                        update-car-velocity
                                         update-car-angular-velocity
                                         move-objects-with-velocity
                                         rotate-objects-with-angular-velocity
@@ -38,7 +39,9 @@
    (speed :initarg :speed
           :initform 10000f0)
    (turning-speed :initarg :turning-speed
-                  :initform 1f0)))
+                  :initform pi)
+   (brake-strength :initarg :brake-strength
+                   :initform 3f0)))
 
 (defclass uniform-friction-component (component)
   ((coeff :initarg :coeff
@@ -57,28 +60,45 @@
                     (input-comp player-input-component))
       entity-id
     (with-slots (rot) rot
-      (let* ((input (y (dir *input*)))
-             (facing-x (cos rot))
-             (facing-y (sin rot))
-             (to-add (v2-n:*s (v! facing-x facing-y)
+      (with-slots (vel) move
+       (let* ((input (y (dir *input*)))
+              (facing-dir (v! (cos rot)
+                              (sin rot)))
+              (forward-speed (v2:dot facing-dir vel))
+              (to-add (v2-n:-
+                       (v2:*s facing-dir
                               (* (slot-value input-comp 'accell)
                                  dt
-                                 input))))
-        (with-slots (vel) move
-          (unless (and (> (v2:dot to-add vel) 0)
-                       (>= (v2:length vel) (slot-value input-comp 'speed)))
-            (v2-n:+ vel
-                    to-add)))))))
+                                 input))
+                       (v2:*s facing-dir
+                              (if (brake *input*)
+                                  (* forward-speed
+                                     (slot-value input-comp 'brake-strength)
+                                     dt)
+                                  0f0)))))
+         (unless (and (> (v2:dot to-add vel) 0)
+                      (>= (v2:length vel) (slot-value input-comp 'speed)))
+           (v2-n:+ vel
+                   to-add)))))))
 
 (define-component-system update-car-angular-velocity (entity-id dt)
-    (angular-velocity-component player-input-component) ()
+    (velocity-component angular-velocity-component rotation-component player-input-component) ()
   (declare (ignore dt))
-  (with-components ((vel angular-velocity-component)
-                    (input player-input-component))
+  (with-components ((ang-vel angular-velocity-component)
+                    (input player-input-component)
+                    (vel velocity-component)
+                    (rot rotation-component))
       entity-id
-    (with-slots (ang-vel) vel
-      (setf ang-vel (* (- (x (dir *input*)))
-                       (slot-value input 'turning-speed))))))
+    (with-slots (ang-vel) ang-vel
+      (with-slots (vel) vel
+        (with-slots (rot) rot
+          (let ((dir (v! (cos rot)
+                         (sin rot))))
+            (setf ang-vel (* (- (x (dir *input*)))
+                             (slot-value input 'turning-speed)
+                             (min (v2:length-squared vel) 1)
+                             (v2:dot (v2:normalize vel)
+                                     dir)))))))))
 
 (define-component-system move-objects-with-velocity (entity-id dt)
     (velocity-component position-component) ()
@@ -138,7 +158,8 @@
     ((player-input-component)
      (velocity-component)
      (angular-velocity-component)
-     (directional-friction-component)
+     (directional-friction-component :low-coeff 0.9
+                                     :high-coeff 7)
      (texture-component :texture "./res/car_blue_1.png"
                         :rotation (/ pi 2))))
 
