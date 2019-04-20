@@ -51,6 +51,11 @@
     (make-instance 'scale-component
                    :scale (v! (x scale) (y scale)))))
 
+(define-prototype transform (&optional pos rot scale) ()
+    ((position-component :pos (if pos pos (v! 0 0)))
+     (rotation-component :rot (if rot rot 0))
+     (scale-component :scale (if scale scale (v! 1 1)))))
+
 (defclass camera-component (component)
   ((zoom :initarg :zoom :accessor zoom
          :initform 0.1)
@@ -61,6 +66,6 @@
   (make-instance 'camera-component
                  :zoom (zoom comp)))
 
-(define-prototype camera ()
+(define-prototype camera () ()
   ((camera-component :zoom 0.1 :active-p t)
    (position-component)))

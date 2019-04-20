@@ -15,31 +15,41 @@
     (incf *next-entity-id*)
     val))
 
+(defun entity-exists-p (entity-id)
+  (gethash entity-id *entities*))
+
 (defvar *prototypes* (make-hash-table :test 'eq))
 (defclass prototype ()
   ((instantiation-fun :initarg :instantiation-fun)))
 
-(defmacro define-prototype (name superprototypes components)
+(defmacro define-prototype (name arguments superprototypes
+                            components
+                            &optional entity-id-sym
+                            &body body)
   (let ((entity-id (gensym))
-        (prototype (gensym))
         (superprototype (gensym)))
     `(setf (gethash ',name *prototypes*)
        (make-instance 'prototype
-                      :instantiation-fun (lambda (,entity-id)
-                                           (loop :for ,prototype :in ,superprototypes
-                                                 :do (let ((,superprototype (gethash ,prototype *prototypes*)))
-                                                       (funcall (slot-value ,superprototype 'instantiation-fun)
-                                                                ,entity-id)))
+                      :instantiation-fun (lambda (,entity-id ,@arguments)
+                                           ,@(loop :for prototype :in (mapcar #'car superprototypes)
+                                                   :for args :in (mapcar #'cdr superprototypes)
+                                                   :collect `(let ((,superprototype (gethash ',prototype *prototypes*)))
+                                                               (funcall (slot-value ,superprototype 'instantiation-fun)
+                                                                        ,entity-id
+                                                                        ,@args)))
                                            ,@(loop :for component
                                                      :in (mapcar (lambda (comp)
                                                                    `(make-instance ',(car comp) ,@(cdr comp)))
                                                                  components)
                                                    :collect `(add-component ,entity-id ,component))
+                                           ,(when entity-id-sym
+                                              `(let ((,entity-id-sym ,entity-id))
+                                                 ,@body))
                                            ,entity-id)))))
 
-(defun instantiate-prototype (prototype)
+(defun instantiate-prototype (prototype &rest args)
   (let ((entity-id (make-entity)))
-    (funcall (slot-value (gethash prototype *prototypes*) 'instantiation-fun) entity-id)
+    (apply (slot-value (gethash prototype *prototypes*) 'instantiation-fun) entity-id args)
     entity-id))
 
 (defun init-entities ()
