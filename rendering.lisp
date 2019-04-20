@@ -6,7 +6,7 @@
 (defvar *textures* nil)
 (defvar *blending-params* nil)
 
-(defparameter *scene-render-systems* '(resize-viewport clear-fbo select-camera render-car swap))
+(defparameter *scene-render-systems* '(resize-viewport clear-fbo select-camera render-textured swap))
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
@@ -86,6 +86,14 @@
   (loop :for system :in *scene-render-systems*
         :do (run-system system alpha)))
 
+(defclass texture-component (component)
+  ((texture :initarg :texture
+            :initform (error "Cannot create a textured object without a texture"))))
+
+(defmethod copy-component ((comp texture-component))
+  (make-instance 'texture-component
+                 :texture (slot-value comp 'texture-component)))
+
 (define-global-system clear-fbo (alpha)
   (declare (ignore alpha))
   (clear-fbo (fbo-bound (cepl-context))))
@@ -105,24 +113,28 @@
   (when (active-p (get-component entity-id 'camera-component))
     (setf *camera* entity-id)))
 
-(define-component-system render-car (entity-id alpha)
-    (position-component) (camera-component)
+(define-component-system render-textured (entity-id alpha)
+    (position-component texture-component) (camera-component)
   (declare (ignore alpha))
-  (let* ((tex (texture "./res/car_blue_1.png"))
-         (sam (sample tex))
-         (pos-comp (get-component entity-id 'position-component)))
-    (alexandria:when-let ((camera-pos (get-component *camera* 'position-component))
-                          (camera-comp (get-component *camera* 'camera-component)))
-      (destructuring-bind (x y) (texture-base-dimensions tex)
-        (with-blending *blending-params*
-          (map-g #'textured-object-quad *quad-stream*
-                 :quad->model (m! x 0 0 0
-                                  0 y 0 0
-                                  0 0 1 0
-                                  0 0 0 1)
-                 :model->world (world-matrix (pos pos-comp) 0 (v! 1 1))
-                 :world->view (view-matrix (pos camera-pos)
-                                           (let ((scale (/ (zoom camera-comp))))
-                                             (v! scale scale)))
-                 :view->projection (ortho-projection)
-                 :sam sam))))))
+  (with-components ((camera-pos position-component)
+                    (camera-comp camera-component))
+      *camera*
+    (when (and camera-pos camera-comp)
+      (with-components ((tex-comp texture-component)
+                        (pos-comp position-component))
+          entity-id
+        (let* ((tex (texture (slot-value tex-comp 'texture)))
+               (sam (sample tex)))
+          (destructuring-bind (x y) (texture-base-dimensions tex)
+            (with-blending *blending-params*
+              (map-g #'textured-object-quad *quad-stream*
+                     :quad->model (m! x 0 0 0
+                                      0 y 0 0
+                                      0 0 1 0
+                                      0 0 0 1)
+                     :model->world (world-matrix (slot-value pos-comp 'pos) 0 (v! 1 1))
+                     :world->view (view-matrix (slot-value camera-pos 'pos)
+                                               (let ((scale (/ (zoom camera-comp))))
+                                                 (v! scale scale)))
+                     :view->projection (ortho-projection)
+                     :sam sam))))))))

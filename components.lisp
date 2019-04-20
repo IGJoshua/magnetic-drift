@@ -17,12 +17,13 @@
     (gethash component-name (slot-value (gethash entity-id *entities*) 'components))))
 
 (defclass position-component (component)
-  ((pos :initarg :pos :accessor pos
+  ((pos :initarg :pos
         :initform (v! 0 0))))
 
 (defmethod copy-component ((comp position-component))
-  (make-instance 'position-component
-                 :pos (v! (x (pos comp)) (y (pos comp)))))
+  (with-slots (pos) comp
+      (make-instance 'position-component
+                     :pos (v! (x pos) (y comp)))))
 
 (defmacro with-components (component-list entity-id &body body)
   (let ((id (gensym)))

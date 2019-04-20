@@ -10,7 +10,7 @@
 (defparameter *scene-physics-systems* '(global-move-camera move-cars))
 
 (define-global-system global-move-camera (dt)
-  (v2-n:+ (pos (get-component *camera* 'position-component))
+  (v2-n:+ (slot-value (get-component *camera* 'position-component) 'pos)
           (v2:*s (cam-dir *input*)
                  (* 10000.0 dt
                     (if (brake *input*)
@@ -21,7 +21,7 @@
 
 (define-component-system move-cars (entity-id dt)
     (position-component player-movement-component) ()
-  (v2-n:+ (pos (get-component entity-id 'position-component))
+  (v2-n:+ (slot-value (get-component entity-id 'position-component) 'pos)
           (v2:*s (dir *input*)
                  (* 1000.0 dt))))
 
