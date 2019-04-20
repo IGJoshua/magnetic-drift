@@ -24,6 +24,15 @@
   (make-instance 'position-component
                  :pos (v! (x (pos comp)) (y (pos comp)))))
 
+(defmacro with-components (component-list entity-id &body body)
+  (let ((id (gensym)))
+    `(let ((,id ,entity-id))
+       (let (,@(mapcar (lambda (elt)
+                         (destructuring-bind (sym comp-sym) elt
+                             `(,sym (get-component ,id ',comp-sym))))
+                       component-list))
+         ,@body))))
+
 (defclass camera-component (component)
   ((zoom :initarg :zoom :accessor zoom
          :initform 0.1)
