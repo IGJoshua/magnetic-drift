@@ -121,7 +121,8 @@
       *camera*
     (when (and camera-pos camera-comp)
       (with-components ((tex-comp texture-component)
-                        (pos-comp position-component))
+                        (pos-comp position-component)
+                        (rot-comp rotation-component))
           entity-id
         (let* ((tex (texture (slot-value tex-comp 'texture)))
                (sam (sample tex)))
@@ -132,7 +133,12 @@
                                       0 y 0 0
                                       0 0 1 0
                                       0 0 0 1)
-                     :model->world (world-matrix (slot-value pos-comp 'pos) 0 (v! 1 1))
+                     :model->world (world-matrix (slot-value pos-comp 'pos)
+                                                 (float (if rot-comp
+                                                            (slot-value rot-comp 'rot)
+                                                            0)
+                                                        1f0)
+                                                 (v! 1 1))
                      :world->view (view-matrix (slot-value camera-pos 'pos)
                                                (let ((scale (/ (zoom camera-comp))))
                                                  (v! scale scale)))
