@@ -82,14 +82,18 @@
   (unless *blending-params*
     (setf *blending-params* (make-blending-params))))
 
-(define-global-system resize-viewport (alpha)
-  (declare (ignore alpha))
-  (setf (cepl:viewport-resolution (current-viewport))
-        (surface-resolution (current-surface (cepl-context)))))
+(defun render (alpha)
+  (loop :for system :in *scene-render-systems*
+        :do (run-system system alpha)))
 
 (define-global-system clear-fbo (alpha)
   (declare (ignore alpha))
   (clear-fbo (fbo-bound (cepl-context))))
+
+(define-global-system resize-viewport (alpha)
+  (declare (ignore alpha))
+  (setf (cepl:viewport-resolution (current-viewport))
+        (surface-resolution (current-surface (cepl-context)))))
 
 (define-global-system swap (alpha)
   (declare (ignore alpha))
@@ -122,7 +126,3 @@
                                              (v! scale scale)))
                  :view->projection (ortho-projection)
                  :sam sam))))))
-
-(defun render (alpha)
-  (loop :for system :in *scene-render-systems*
-        :do (run-system system alpha)))
