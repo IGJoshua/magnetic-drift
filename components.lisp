@@ -16,7 +16,13 @@
   (when entity-id
     (gethash component-name (slot-value (gethash entity-id *entities*) 'components))))
 
+(defun remove-component (entity-id component-name)
+  (when entity-id
+    (remhash component-name (slot-value (gethash entity-id *entities*) 'components))))
+
 (defmacro with-components (component-list entity-id &body body)
+  (unless body
+    (uiop:style-warn "No body included. Did you forget to bind an entity id?"))
   (let ((id (gensym)))
     `(let ((,id ,entity-id))
        (let (,@(mapcar (lambda (elt)

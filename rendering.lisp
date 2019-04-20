@@ -88,7 +88,13 @@
 
 (defclass texture-component (component)
   ((texture :initarg :texture
-            :initform (error "Cannot create a textured object without a texture"))))
+            :initform (error "Cannot create a textured object without a texture"))
+   (offset :initarg :offset
+           :initform (v! 0 0))
+   (rotation :initarg :rotation
+             :initform 0)
+   (scale :initarg :scale
+          :initform (v! 1 1))))
 
 (defmethod copy-component ((comp texture-component))
   (make-instance 'texture-component
@@ -130,10 +136,11 @@
           (destructuring-bind (x y) (texture-base-dimensions tex)
             (with-blending *blending-params*
               (map-g #'textured-object-quad *quad-stream*
-                     :quad->model (m! x 0 0 0
-                                      0 y 0 0
-                                      0 0 1 0
-                                      0 0 0 1)
+                     :quad->model (world-matrix (slot-value tex-comp 'offset)
+                                                (float (slot-value tex-comp 'rotation)
+                                                       1f0)
+                                                (v2-n:* (v! x y)
+                                                        (slot-value tex-comp 'scale)))
                      :model->world (world-matrix (slot-value pos-comp 'pos)
                                                  (float (if rot-comp
                                                             (slot-value rot-comp 'rot)

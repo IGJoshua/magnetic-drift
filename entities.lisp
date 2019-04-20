@@ -31,8 +31,7 @@
     `(setf (gethash ',name *prototypes*)
        (make-instance 'prototype
                       :instantiation-fun (lambda (,entity-id ,@arguments)
-                                           ,@(loop :for prototype :in (mapcar #'car superprototypes)
-                                                   :for args :in (mapcar #'cdr superprototypes)
+                                           ,@(loop :for (prototype . args) :in superprototypes
                                                    :collect `(let ((,superprototype (gethash ',prototype *prototypes*)))
                                                                (funcall (slot-value ,superprototype 'instantiation-fun)
                                                                         ,entity-id
