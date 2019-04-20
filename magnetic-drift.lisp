@@ -147,7 +147,8 @@
   (update-repl-link)
   (handle-input)
   (loop :for system :in *scene-physics-systems*
-        :do (run-system system dt)))
+        :do (run-system system dt))
+  (process-events))
 
 (defun spawn-default-entities ()
   (instantiate-prototype 'camera)

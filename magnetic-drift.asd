@@ -13,6 +13,7 @@
                #:livesupport #:temporal-functions)
   :components ((:file "package")
                (:file "input")
+               (:file "events")
                (:file "entities")
                (:file "components")
                (:file "systems")
