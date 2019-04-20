@@ -10,11 +10,14 @@
 (defparameter *scene-physics-systems* '(global-move-camera move-cars))
 
 (define-global-system global-move-camera (dt)
-  (v2-n:+ (slot-value (get-component *camera* 'position-component) 'pos)
-          (v2:*s (cam-dir *input*)
-                 (* 10000.0 dt
-                    (if (brake *input*)
-                        0.1 1.0)))))
+  (when (entity-exists-p *camera*)
+    (with-components ((pos-comp position-component))
+        *camera*
+      (v2-n:+ (slot-value pos-comp 'pos)
+              (v2:*s (cam-dir *input*)
+                     (* 10000.0 dt
+                        (if (brake *input*)
+                            0.1 1.0)))))))
 
 (defclass player-movement-component (component)
   ())
@@ -25,11 +28,9 @@
           (v2:*s (dir *input*)
                  (* 1000.0 dt))))
 
-(define-prototype car ()
-  ((position-component)
-   (player-movement-component)
-   (rotation-component)
-   (scale-component)))
+(define-prototype car (&optional pos rot scale) ((transform pos rot scale))
+    ((player-movement-component)
+     (texture-component :texture "./res/car_blue_1.png")))
 
 (defun update (dt)
   (step-host)
