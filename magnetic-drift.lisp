@@ -13,7 +13,9 @@
                                         move-objects-with-velocity
                                         rotate-objects-with-angular-velocity
                                         apply-directional-friction-to-objects
-                                        apply-uniform-friction-to-objects))
+                                        apply-uniform-friction-to-objects
+                                        mark-entities-for-collision
+                                        check-collisions))
 
 (defun update (dt)
   (step-host)
