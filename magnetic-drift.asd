@@ -18,5 +18,6 @@
                (:file "components")
                (:file "systems")
                (:file "rendering")
+               (:file "physics")
                (:file "player")
                (:file "magnetic-drift")))
