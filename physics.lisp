@@ -44,12 +44,15 @@
     (v2-n:*s (slot-value move 'vel)
              (- 1f0 (* dt (slot-value friction 'coeff))))))
 
-(defparameter *collidable-entities* nil)
+(defvar *collidable-entities* nil)
+(defvar *mobile-collidable-entities* nil)
 
 (define-component-system mark-entities-for-collision (entity-id dt)
     (collider-component position-component) ()
   (declare (ignore dt))
-  (push entity-id *collidable-entities*))
+  (push entity-id *collidable-entities*)
+  (when (get-component entity-id 'velocity-component)
+    (push entity-id *mobile-collidable-entities*)))
 
 (defun overlapping-p (a b)
   (with-components ((a-collider collider-component)
@@ -66,7 +69,7 @@
 
 (define-global-system check-collisions (dt)
   (declare (ignore dt))
-  (loop :for entity-id :in *collidable-entities*
+  (loop :for entity-id :in *mobile-collidable-entities*
         :do (loop :for entity-other :in *collidable-entities*
                   :when (not (eql entity-id entity-other))
                     :do (when (overlapping-p entity-id entity-other)
