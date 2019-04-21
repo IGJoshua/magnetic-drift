@@ -71,9 +71,10 @@
                          (sin rot))))
             (setf ang-vel (* (- (x (dir *input*)))
                              (slot-value input 'turning-speed)
-                             (min (v2:length-squared vel) 1)
-                             (v2:dot (v2:normalize vel)
-                                     dir)))))))))
+                             (/ (min (v2:length-squared vel) 10000f0)
+                                10000f0)
+                             (v2:absolute-dot (v2:normalize vel)
+                                              dir)))))))))
 
 (define-component-system apply-directional-friction-to-objects (entity-id dt)
     (velocity-component directional-friction-component rotation-component) ()
