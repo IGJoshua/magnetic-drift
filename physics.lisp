@@ -77,25 +77,36 @@
     collision-event
   (destructuring-bind (a . b) event
     (with-components ((a-collider collider-component)
-                      (a-pos position-component))
+                      (a-pos position-component)
+                      (a-vel velocity-component))
         a
       (with-components ((b-collider collider-component)
-                        (b-pos position-component))
+                        (b-pos position-component)
+                        (b-vel velocity-component))
           b
         (let* ((diff (v2:- (slot-value a-pos 'pos)
                            (slot-value b-pos 'pos)))
-               (penetration-depth (/ (max (- (+ (slot-value a-collider 'radius)
-                                                (slot-value b-collider 'radius))
-                                             (v2:length diff))
-                                          0f0)
-                                     2f0)))
-          (v2-n:normalize diff)
-          (v2-n:*s diff
-                 penetration-depth)
-          (v2-n:+ (slot-value a-pos 'pos)
-                  diff)
-          (v2-n:- (slot-value b-pos 'pos)
-                  diff))))))
+               (penetration-depth (max (- (+ (slot-value a-collider 'radius)
+                                             (slot-value b-collider 'radius))
+                                          (v2:length diff))
+                                       0f0)))
+          (when (> penetration-depth 0)
+            (v2-n:normalize diff)
+            ;; b is static
+            (if (and a-vel (not b-vel))
+                (v2-n:+ (slot-value a-pos 'pos)
+                        (v2:*s diff penetration-depth))
+                ;; a is static
+                (if (and b-vel (not a-vel))
+                    (v2-n:- (slot-value b-pos 'pos)
+                            (v2:*s diff penetration-depth))
+                    ;; neither is static
+                    (let* ((half-depth (/ penetration-depth 2))
+                           (half-diff (v2:*s diff half-depth)))
+                      (v2-n:+ (slot-value a-pos 'pos)
+                              half-diff)
+                      (v2-n:- (slot-value b-pos 'pos)
+                              half-diff))))))))))
 
 (define-prototype tire (&optional pos scale) ()
     ((position-component :pos (if pos pos (v! 0 0)))
