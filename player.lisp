@@ -14,7 +14,7 @@
 
 (defclass player-input-component (component)
   ((accell :initarg :accell
-           :initform 5000f0)
+           :initform 600f0)
    (speed :initarg :speed
           :initform 10000f0)
    (turning-speed :initarg :turning-speed
@@ -108,8 +108,10 @@
     ((player-input-component)
      (velocity-component)
      (angular-velocity-component)
-     (collider-component :radius 100)
+     (collider-component :radius 15)
      (directional-friction-component :low-coeff 0.9
                                      :high-coeff 7)
      (texture-component :texture "./res/car_blue_1.png"
-                        :rotation (/ pi 2))))
+                        :rotation (/ pi 2)
+                        :scale (v! 0.125f0
+                                   0.125f0))))

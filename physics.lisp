@@ -117,5 +117,7 @@
      (scale-component :scale (if scale scale (v! 1 1)))
      (velocity-component)
      (uniform-friction-component)
-     (texture-component :texture "./res/tires_white.png")
-     (collider-component :radius 25)))
+     (texture-component :texture "./res/tires_white.png"
+                        :scale (v! 0.125
+                                   0.125))
+     (collider-component :radius 5)))
