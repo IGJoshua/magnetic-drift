@@ -8,7 +8,7 @@
         *camera*
       (v2-n:+ (slot-value pos-comp 'pos)
               (v2:*s (cam-dir *input*)
-                     (* 10000.0 dt
+                     (* 1000.0 dt
                         (if (brake *input*)
                             0.1 1.0)))))))
 
@@ -73,7 +73,7 @@
                              (slot-value input 'turning-speed)
                              (/ (min (v2:length-squared vel) 10000f0)
                                 10000f0)
-                             (v2:absolute-dot (v2:normalize vel)
+                             (v2:dot (v2:normalize vel)
                                               dir)))))))))
 
 (define-component-system apply-directional-friction-to-objects (entity-id dt)
