@@ -42,7 +42,7 @@
   (slynk-mrepl::send-prompt (find (bt:current-thread) (slynk::channels)
                                   :key #'slynk::channel-thread))
   (setf *running* t)
-  (let* ((fps 30.0f0)
+  (let* ((fps 120.0f0)
          (seconds-per-frame (/ fps))
          (seconds-per-internal-unit (/ internal-time-units-per-second))
          (last-frame-seconds (* seconds-per-internal-unit (get-internal-real-time)))
