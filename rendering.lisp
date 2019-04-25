@@ -6,7 +6,12 @@
 (defvar *textures* nil)
 (defvar *blending-params* nil)
 
-(defparameter *scene-render-systems* '(resize-viewport clear-fbo select-camera render-textured swap))
+(defparameter *scene-render-systems* '(resize-viewport
+                                       clear-fbo
+                                       select-camera
+                                       render-tilemap
+                                       render-textured
+                                       swap))
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
@@ -72,6 +77,7 @@
 
 (defun init-renderer ()
   (setf (clear-color) (v! 0.57254905 0.65882355 0.7176471 1.0))
+  (gl:disable :depth-test)
   (unless *quad-stream*
     (setf *quad-stream* (nineveh:get-quad-stream-v2)))
   (unless *textures*
