@@ -73,5 +73,5 @@
                  :zoom (zoom comp)))
 
 (define-prototype camera () ()
-  ((camera-component :zoom 0.1 :active-p t)
+  ((camera-component :zoom 0.75 :active-p t)
    (position-component)))
