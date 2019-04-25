@@ -11,10 +11,7 @@
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
     tex
-    (setf (gethash filename *textures*) (dirt:load-image-to-texture filename))))
-
-(defun sampler-for-texture (filename)
-  (sample (texture filename)))
+    (setf (gethash filename *textures*) (sample (dirt:load-image-to-texture filename)))))
 
 (defun-g fullscreen-quad-vert ((positions :vec2))
   (values (v! positions 0 1)
@@ -131,8 +128,8 @@
                         (rot-comp rotation-component)
                         (scale-comp scale-component))
           entity-id
-        (let* ((tex (texture (slot-value tex-comp 'texture)))
-               (sam (sample tex)))
+        (let* ((sam (texture (slot-value tex-comp 'texture)))
+               (tex (slot-value sam 'texture)))
           (destructuring-bind (x y) (texture-base-dimensions tex)
             (with-blending *blending-params*
               (map-g #'textured-object-quad *quad-stream*
