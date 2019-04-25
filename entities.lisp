@@ -32,22 +32,24 @@
   (let ((entity-id (gensym))
         (superprototype (gensym)))
     `(setf (gethash ',name *prototypes*)
-       (make-instance 'prototype
-                      :instantiation-fun (lambda (,entity-id ,@arguments)
-                                           ,@(loop :for (prototype . args) :in superprototypes
-                                                   :collect `(let ((,superprototype (gethash ',prototype *prototypes*)))
-                                                               (funcall (slot-value ,superprototype 'instantiation-fun)
-                                                                        ,entity-id
-                                                                        ,@args)))
-                                           ,@(loop :for component
-                                                     :in (mapcar (lambda (comp)
-                                                                   `(make-instance ',(car comp) ,@(cdr comp)))
-                                                                 components)
-                                                   :collect `(add-component ,entity-id ,component))
-                                           ,(when entity-id-sym
-                                              `(let ((,entity-id-sym ,entity-id))
-                                                 ,@body))
-                                           ,entity-id)))))
+       (make-instance
+        'prototype
+        :instantiation-fun
+        (lambda (,entity-id ,@arguments)
+          ,@(loop :for (prototype . args) :in superprototypes
+                  :collect `(let ((,superprototype (gethash ',prototype *prototypes*)))
+                              (funcall (slot-value ,superprototype 'instantiation-fun)
+                                       ,entity-id
+                                       ,@args)))
+          ,@(loop :for component
+                    :in (mapcar (lambda (comp)
+                                  `(make-instance ',(car comp) ,@(cdr comp)))
+                                components)
+                  :collect `(add-component ,entity-id ,component))
+          ,(when entity-id-sym
+             `(let ((,entity-id-sym ,entity-id))
+                ,@body))
+          ,entity-id)))))
 
 (defun instantiate-prototype (prototype &rest args)
   (let ((entity-id (make-entity)))
