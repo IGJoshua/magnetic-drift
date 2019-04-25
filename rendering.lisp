@@ -6,7 +6,12 @@
 (defvar *textures* nil)
 (defvar *blending-params* nil)
 
-(defparameter *scene-render-systems* '(resize-viewport clear-fbo select-camera render-textured swap))
+(defparameter *scene-render-systems* '(resize-viewport
+                                       clear-fbo
+                                       select-camera
+                                       render-tilemap
+                                       render-textured
+                                       swap))
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
