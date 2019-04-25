@@ -74,7 +74,8 @@
                   :when (not (eql entity-id entity-other))
                     :do (when (overlapping-p entity-id entity-other)
                           (publish-event 'collision-event (cons entity-id entity-other)))))
-  (setf *collidable-entities* nil))
+  (setf *collidable-entities* nil)
+  (setf *mobile-collidable-entities* nil))
 
 (define-event-handler dislodge-collided-entities (event)
     collision-event
