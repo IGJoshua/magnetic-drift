@@ -42,21 +42,24 @@
   (slynk-mrepl::send-prompt (find (bt:current-thread) (slynk::channels)
                                   :key #'slynk::channel-thread))
   (setf *running* t)
-  (let* ((fps 120.0)
+  (let* ((fps 120.0f0)
          (seconds-per-frame (/ fps))
-         (seconds-per-internal-unit (/ internal-time-units-per-second))
-         (last-frame-seconds 0.0)
-         (next-frame-seconds 0.0))
+         (seconds-per-internal-unit (float (/ internal-time-units-per-second)
+                                           0f0))
+         (last-frame-seconds (* seconds-per-internal-unit (get-internal-real-time)))
+         (next-frame-seconds (+ last-frame-seconds seconds-per-frame)))
     (loop :while (and *running* (not (shutting-down-p)))
-          :do (continuable
-                (let ((current-time (* seconds-per-internal-unit (get-internal-real-time))))
-                  (loop :while (> current-time
-                                  next-frame-seconds)
-                        :do (progn
-                              (update seconds-per-frame)
-                              (setf last-frame-seconds current-time)
-                              (setf next-frame-seconds (+ current-time seconds-per-frame))))
-                  (render (* (- current-time last-frame-seconds) fps)))))))
+          :do
+             (continuable
+               (loop :with current-time := (* seconds-per-internal-unit (get-internal-real-time))
+                     :while (> current-time
+                               next-frame-seconds)
+                     :do
+                        (update seconds-per-frame)
+                        (setf last-frame-seconds next-frame-seconds
+                              next-frame-seconds (+ next-frame-seconds seconds-per-frame))
+                     :finally
+                        (render (* (- current-time last-frame-seconds) fps)))))))
 
 (defun stop-loop ()
   (setf *running* nil))
