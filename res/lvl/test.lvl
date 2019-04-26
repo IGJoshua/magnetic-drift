@@ -1,0 +1,12 @@
+---TEXTURES
+# ./res/land_dirt05.png
+---MAP
+#####
+#####
+#####
+#####
+#####
+---OBJECTS
+(instantiate-prototype 'camera)
+(instantiate-prototype 'car (v! 200 0) (/ pi 2f0))
+(instantiate-prototype 'tire)

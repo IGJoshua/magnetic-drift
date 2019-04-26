@@ -12,6 +12,74 @@
    (tile-size :initarg :tile-size
               :initform 16)))
 
+(defmethod copy-component ((comp tilemap-component))
+  (let* ((copy (make-instance 'tilemap-component))
+         (copy-hash (slot-value copy 'textures)))
+    (setf (slot-value copy 'tiles)
+          nil)
+    (maphash (lambda (k v)
+               (setf (gethash k copy) v))
+             comp)))
+
+(defun load-tilemap (filepath)
+  (with-open-file (file filepath)
+    (let ((str nil)
+          (tilemap (make-instance 'tilemap-component))
+          (tiles (make-array 0 :fill-pointer t :adjustable t)))
+      (loop :with state := nil
+            :with objects-str := nil
+            :for line := (read-line file nil nil)
+            :while line
+            :do
+               (format t "Reading line: '~a'~%" line)
+               (when (and (> (length line) 3)
+                          (string= (subseq line 0 3)
+                                   "---"))
+                 (setf state (subseq line 3)))
+               (format t "Currently in the ~a state~%" state)
+               (alexandria:switch (state :test #'string=)
+                 ("OBJECTS"
+                  (unless (string= line
+                                   "---OBJECTS")
+                    (setf objects-str
+                          (if objects-str
+                              (format nil "~a~%~a" objects-str line)
+                              line))))
+                 ("TEXTURES"
+                  (unless (string= line
+                                   "---TEXTURES")
+                    (let ((char (char line 0))
+                          (tex (subseq line 2)))
+                      (setf (gethash char (slot-value tilemap 'textures))
+                            tex))))
+                 ("MAP"
+                  (unless (string= line
+                                   "---MAP")
+                    (let ((row (apply #'vector
+                                      (loop :for char :across line
+                                            :collect char))))
+                      (vector-push-extend row tiles)))))
+            :finally (setf str objects-str))
+      (setf (slot-value tilemap 'tiles)
+            tiles)
+      (values
+       tilemap
+       (when str
+         (with-input-from-string (str str)
+           (cons 'progn
+                 (loop :with sentinel := '#:EOF
+                       :for form := (read str nil sentinel)
+                       :until (eq form sentinel)
+                       :collect form))))))))
+
+(defun load-scene (filepath)
+  (setf *entities* (make-hash-table))
+  (let ((tilemap (add-component (make-entity) (make-instance 'position-component))))
+    (multiple-value-bind (tilemap-component forms)
+        (load-tilemap filepath)
+      (add-component tilemap tilemap-component)
+      (eval forms))))
+
 (define-component-system render-tilemap (entity-id alpha)
     (tilemap-component position-component) ()
   (declare (ignore alpha))
