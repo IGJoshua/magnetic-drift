@@ -211,6 +211,25 @@
    (scale :initarg :scale
           :initform (v! 1 1))))
 
+(defmethod copy-component ((comp text-component))
+  (with-slots (font text color point-size
+               bold italic underline strike-through
+               offset rotation scale)
+      comp
+    (make-instance
+     'text-component
+     :font font
+     :text (copy-seq text)
+     :color color
+     :point-size point-size
+     :bold bold
+     :italic italic
+     :underline underline
+     :strike-through strike-through
+     :offset (v! (x offset) (y offset))
+     :rotation rotation
+     :scale (v! (x scale) (y scale)))))
+
 (defun text-size-zero-p (ttf-font text)
   (cffi:with-foreign-objects ((w :int) (h :int))
     (sdl2-ttf::ttf-size-utf8 ttf-font text w h)
