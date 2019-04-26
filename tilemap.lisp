@@ -12,6 +12,47 @@
    (tile-size :initarg :tile-size
               :initform 16)))
 
+(defmethod copy-component ((comp tilemap-component))
+  (let* ((copy (make-instance 'tilemap-component))
+         (copy-hash (slot-value copy 'textures)))
+    (setf (slot-value copy 'tiles)
+          nil)
+    (maphash (lambda (k v)
+               (setf (gethash k copy) v))
+             comp)))
+
+(defun load-tilemap (filepath)
+  (with-open-file (file filepath)
+    (let ((str nil)
+          (tilemap (make-instance 'tilemap-component)))
+      (loop :with state := nil
+            :with objects-str := nil
+            :for line := (read-line file nil nil)
+            :while line
+            :do
+               (format t "Reading line: '~a'~%" line)
+               (when (and (> (length line) 3)
+                          (string= (subseq line 0 3)
+                                   "---"))
+                 (setf state (subseq line 3)))
+               (format t "Currently in the ~a state~%" state)
+               (alexandria:switch (state :test #'string=)
+                 ("OBJECTS"
+                  (unless (string= line
+                                   "---OBJECTS")
+                    (setf objects-str
+                          (if objects-str
+                              (format nil "~a~%~a" objects-str line)
+                              line)))))
+            :finally (setf str objects-str))
+      (when str
+        (with-input-from-string (str str)
+          (cons 'progn
+                (loop :with sentinel := '#:EOF
+                      :for form := (read str nil sentinel)
+                      :until (eq form sentinel)
+                      :collect form)))))))
+
 (define-component-system render-tilemap (entity-id alpha)
     (tilemap-component position-component) ()
   (declare (ignore alpha))
