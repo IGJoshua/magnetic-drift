@@ -8,6 +8,7 @@
   :serial t
   :depends-on (#:cepl.sdl2
                #:skitter #:cepl.skitter.sdl2
+               #:sdl2-ttf #:cepl.sdl2-ttf
                #:nineveh #:dirt
                #:rtg-math #:rtg-math.vari
                #:livesupport #:temporal-functions)

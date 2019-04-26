@@ -4,6 +4,9 @@
 
 (defvar *quad-stream* nil)
 (defvar *textures* nil)
+(defvar *fonts* nil
+  "(truename point-size properties-mask) <=> ttf-font")
+
 (defvar *blending-params* nil)
 
 (defparameter *scene-render-systems* '(resize-viewport
@@ -11,12 +14,33 @@
                                        select-camera
                                        render-tilemap
                                        render-textured
+                                       render-normal-text
                                        swap))
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
     tex
     (setf (gethash filename *textures*) (sample (dirt:load-image-to-texture filename)))))
+
+(defun font-properties-bitmask (bold italic underline strike-through)
+  (logior
+   (if bold sdl2-ttf::+style-bold+ 0)
+   (if italic sdl2-ttf::+style-italic+ 0)
+   (if underline sdl2-ttf::+style-underline+ 0)
+   (if strike-through sdl2-ttf::+style-strike-through+ 0)))
+
+(defun ttf-font (font-path &key (point-size 12) bold italic underline strike-through)
+  "Get a `ttf-font' for the file at `font-path'
+  Returns a cached font, or loads a new one if necessary."
+  (let* ((truename (truename font-path))
+         (properties (font-properties-bitmask bold italic underline strike-through))
+         (key (list truename point-size properties))
+         (ttf-font (gethash key *fonts*)))
+    (unless ttf-font
+      (setf ttf-font (sdl2-ttf::ttf-open-font (uiop:native-namestring truename) point-size))
+      (sdl2-ttf::ttf-set-font-style ttf-font properties)
+      (setf (gethash key *fonts*) ttf-font))
+    ttf-font))
 
 (defun-g fullscreen-quad-vert ((positions :vec2))
   (values (v! positions 0 1)
@@ -82,8 +106,11 @@
     (setf *quad-stream* (nineveh:get-quad-stream-v2)))
   (unless *textures*
     (setf *textures* (make-hash-table :test 'equal)))
+  (unless *fonts*
+    (setf *fonts* (make-hash-table :test 'equalp)))
   (unless *blending-params*
-    (setf *blending-params* (make-blending-params))))
+    (setf *blending-params* (make-blending-params)))
+  (cepl.sdl2-ttf:init-cepl-sdl2-ttf))
 
 (defun render (alpha)
   (loop :for system :in *scene-render-systems*
@@ -157,3 +184,92 @@
                                                  (v! scale scale)))
                      :view->projection (ortho-projection)
                      :sam sam))))))))
+
+(defclass text-component (component)
+  ((font :initarg :font
+         :initform (error "Cannot create a text object without a font"))
+   (text :initarg :text
+         :initform "")
+   (color :initarg :color
+          :initform (v! 255 255 255 0))
+   (point-size :initarg :point-size
+               :initform 12)
+   (bold :initarg :bold
+         :initform nil)
+   (italic :initarg :italic
+           :initform nil)
+   (underline :initarg :underline
+              :initform nil)
+   (strike-through :initarg :strike-through
+                   :initform nil)
+   (offset :initarg :offset
+           :initform (v! 0 0))
+   (rotation :initarg :rotation
+             :initform 0)
+   (scale :initarg :scale
+          :initform (v! 1 1))))
+
+(defun text-size-zero-p (ttf-font text)
+  (cffi:with-foreign-objects ((w :int) (h :int))
+    (sdl2-ttf::ttf-size-utf8 ttf-font text w h)
+    (or (zerop (cffi:mem-ref w :int))
+        (zerop (cffi:mem-ref h :int)))))
+
+(defun text-to-tex (text font &optional (color (v! 255 255 255 0)))
+  "Workaround for `cepl.sdl2-ttf:text-to-tex' which cancels autocollect on the rendered surface"
+  (let* ((texture-surface (sdl2-ttf:render-utf8-blended
+                           font text
+                           (round (x color)) (round (y color))
+                           (round (z color)) (round (w color))))
+         (width (sdl2:surface-width texture-surface))
+         (height (sdl2:surface-height texture-surface)))
+    (unwind-protect
+         (let ((carr (make-c-array-from-pointer
+                      (list width height)
+                      :uint8-vec4
+                      (sdl2:surface-pixels texture-surface))))
+           (make-texture carr))
+      (sdl2:free-surface texture-surface)
+      (autowrap:autocollect-cancel texture-surface))))
+
+(define-component-system render-normal-text (entity-id alpha)
+    (position-component text-component) (camera-component)
+  (declare (ignore alpha))
+  (with-components ((camera-pos position-component)
+                    (camera-comp camera-component))
+      *camera*
+    (when (and camera-pos camera-comp)
+      (with-components ((text-comp text-component)
+                        (pos-comp position-component)
+                        (rot-comp rotation-component)
+                        (scale-comp scale-component))
+          entity-id
+        (let ((font (ttf-font (slot-value text-comp 'font)))
+              (text (slot-value text-comp 'text)))
+          (unless (text-size-zero-p font text)
+            (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
+                   (sam (sample tex)))
+              (unwind-protect
+                   (destructuring-bind (x y) (texture-base-dimensions tex)
+                     (with-blending *blending-params*
+                       (map-g #'textured-object-quad *quad-stream*
+                              :quad->model (world-matrix (slot-value text-comp 'offset)
+                                                         (float (slot-value text-comp 'rotation)
+                                                                1f0)
+                                                         (v2-n:* (v! x y)
+                                                                 (slot-value text-comp 'scale)))
+                              :model->world (world-matrix (slot-value pos-comp 'pos)
+                                                          (float (if rot-comp
+                                                                     (slot-value rot-comp 'rot)
+                                                                     0)
+                                                                 1f0)
+                                                          (if scale-comp
+                                                              (slot-value scale-comp 'scale)
+                                                              (v! 1 1)))
+                              :world->view (view-matrix (slot-value camera-pos 'pos)
+                                                        (let ((scale (/ (zoom camera-comp))))
+                                                          (v! scale scale)))
+                              :view->projection (ortho-projection)
+                              :sam sam)))
+                (cepl:free sam)
+                (cepl:free tex)))))))))
