@@ -56,7 +56,9 @@
 (defun-g texture-frag ((uvs :vec2)
                        &uniform
                        (sam :sampler-2d))
-  (texture sam uvs))
+  (let ((uvs (v! (x uvs)
+                 (- 1 (y uvs)))))
+    (texture sam uvs)))
 
 (defpipeline-g textured-fullscreen-quad ()
   :vertex (fullscreen-quad-vert :vec2)

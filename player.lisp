@@ -112,6 +112,6 @@
      (directional-friction-component :low-coeff 0.9
                                      :high-coeff 7)
      (texture-component :texture "./res/car_blue_1.png"
-                        :rotation (/ pi 2)
+                        :rotation (- (/ pi 2))
                         :scale (v! 0.125f0
                                    0.125f0))))
