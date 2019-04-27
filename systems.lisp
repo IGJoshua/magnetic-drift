@@ -23,21 +23,48 @@
 
 (defmethod %run-system ((system component-system) dt)
   (loop :for entity :in (cepl-utils:hash-keys *entities*)
-        :do (when (components-match-p system entity)
-              (funcall (system-fun system) entity dt))))
+        :do (funcall (system-fun system) entity dt)))
 
 (defmethod %run-system ((system global-system) dt)
   (funcall (system-fun system) dt))
 
-(defmacro define-component-system (name lambda-list
-                                   required-components exclude-components
+(defmacro define-component-system (name (entity-id dt)
+                                   (&rest required-or-opt-components)
+                                   (&rest exclude-components)
                                    &body body)
-  `(setf (gethash ',name *systems*)
-         (make-instance 'component-system
-                        :system-fun (lambda ,lambda-list
-                                      ,@body)
-                        :required-components ',required-components
-                        :exclude-components ',exclude-components)))
+  (let ((required-components (loop :for spec :in required-or-opt-components
+                                   :until (eq spec '&optional)
+                                   :collecting spec))
+        (optional-components (loop
+                               :with opt-pos := (position '&optional required-or-opt-components)
+                               :for spec :in (and opt-pos (nthcdr (1+ opt-pos) required-or-opt-components))
+                               :collecting spec)))
+    (alexandria:with-gensyms (entity-sym components-sym)
+      (flet ((make-component-binding (binding)
+               (etypecase binding
+                 (list ; (name type)
+                  (destructuring-bind (name type) binding
+                    `(,name (gethash ',type ,components-sym))))
+                 (symbol ; type only, no name
+                  `(,(gensym) (gethash ',binding ,components-sym))))))
+        `(setf (gethash ',name *systems*)
+               (make-instance 'component-system
+                              :system-fun (lambda (,entity-id ,dt)
+                                            (declare (ignorable ,dt))
+                                            (alexandria:when-let* ((,entity-sym (gethash ,entity-id *entities*))
+                                                                   (,components-sym (slot-value ,entity-sym 'components)))
+                                              (block ,name
+                                                ;; Punk out early if excluded has any components
+                                                ,@(when exclude-components
+                                                    `((when (or ,@(mapcar (lambda (c) `(gethash ',c ,components-sym)) exclude-components))
+                                                        (return-from ,name))))
+                                                ;;Bind the required vars first
+                                                (alexandria:when-let ,(mapcar #'make-component-binding required-components)
+                                                  ;;Then the optional ones
+                                                  (let ,(mapcar #'make-component-binding optional-components)
+                                                    ,@body)))))
+                              :required-components ',required-components
+                              :exclude-components ',exclude-components))))))
 
 (defmacro define-global-system (name lambda-list
                                 &body body)

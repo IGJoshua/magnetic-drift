@@ -6,7 +6,8 @@
   :license "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:cepl.sdl2
+  :depends-on (#:alexandria
+               #:cepl.sdl2
                #:skitter #:cepl.skitter.sdl2
                #:sdl2-ttf #:cepl.sdl2-ttf
                #:nineveh #:dirt

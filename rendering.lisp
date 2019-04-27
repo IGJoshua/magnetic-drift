@@ -127,6 +127,7 @@
 (defun init-renderer ()
   (setf (clear-color) (v! 0.57254905 0.65882355 0.7176471 1.0))
   (gl:disable :depth-test)
+  (sdl2:gl-set-swap-interval 1)
   (unless *quad-stream*
     (setf *quad-stream* (nineveh:get-quad-stream-v2)))
   (unless *textures*
@@ -169,9 +170,9 @@
   (swap))
 
 (define-component-system select-camera (entity-id alpha)
-    (position-component camera-component) ()
-  (declare (ignore alpha))
-  (when (active-p (get-component entity-id 'camera-component))
+    (position-component (camera-comp camera-component))
+    ()
+  (when (active-p camera-comp)
     (setf *camera* entity-id)))
 
 (defun render-texture-impl (sam offset rotation scale pos-comp rot-comp scale-comp)
@@ -203,15 +204,14 @@
 
 
 (define-component-system render-textured (entity-id alpha)
-    (position-component texture-component) (camera-component)
-  (declare (ignore alpha))
-  (with-components ((tex-comp texture-component)
-                    (pos-comp position-component)
-                    (rot-comp rotation-component)
-                    (scale-comp scale-component))
-      entity-id
-    (with-slots (texture offset rotation scale) tex-comp
-      (render-texture-impl (texture texture) offset rotation scale pos-comp rot-comp scale-comp))))
+    ((tex-comp texture-component)
+     (pos-comp position-component)
+     &optional
+     (rot-comp rotation-component)
+     (scale-comp scale-component))
+    ()
+  (with-slots (texture offset rotation scale) tex-comp
+    (render-texture-impl (texture texture) offset rotation scale pos-comp rot-comp scale-comp)))
 
 (defclass text-component (component)
   ((font :initarg :font
@@ -256,6 +256,9 @@
      :rotation rotation
      :scale (v! (x scale) (y scale)))))
 
+(define-prototype normal-text (&key pos rot scale font text) ((transform pos rot scale))
+    ((text-component :font font :text text)))
+
 (defun text-size-zero-p (ttf-font text)
   (cffi:with-foreign-objects ((w :int) (h :int))
     (sdl2-ttf::ttf-size-utf8 ttf-font text w h)
@@ -280,23 +283,22 @@
       (autowrap:autocollect-cancel texture-surface))))
 
 (define-component-system render-normal-text (entity-id alpha)
-    (position-component text-component) (camera-component)
-  (declare (ignore alpha))
-  (with-components ((text-comp text-component)
-                    (pos-comp position-component)
-                    (rot-comp rotation-component)
-                    (scale-comp scale-component))
-      entity-id
-    (let ((font (ttf-font (slot-value text-comp 'font)))
-          (text (slot-value text-comp 'text)))
-      (unless (text-size-zero-p font text)
-        (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
-               (sam (sample tex)))
-          (unwind-protect
-               (with-slots (offset rotation scale) text-comp
-                 (render-texture-impl sam offset rotation scale pos-comp rot-comp scale-comp))
-            (cepl:free sam)
-            (cepl:free tex)))))))
+    ((text-comp text-component)
+     (pos-comp position-component)
+     &optional
+     (rot-comp rotation-component)
+     (scale-comp scale-component))
+    (camera-component)
+  (let ((font (ttf-font (slot-value text-comp 'font)))
+        (text (slot-value text-comp 'text)))
+    (unless (text-size-zero-p font text)
+      (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
+             (sam (sample tex)))
+        (unwind-protect
+             (with-slots (offset rotation scale) text-comp
+               (render-texture-impl sam offset rotation scale pos-comp rot-comp scale-comp))
+          (cepl:free sam)
+          (cepl:free tex))))))
 
 (defclass ui-position-component (component)
   ((anchor :initarg :anchor
@@ -310,6 +312,11 @@
   (with-slots (pos) comp
     (make-instance 'position-component
                    :pos (v! (x pos) (y comp)))))
+
+(define-prototype ui-transform (&optional anchor pos rot scale) ()
+    ((ui-position-component :anchor (or anchor (v! 0 0)) :pos (or pos (v! 0 0)))
+     (rotation-component :rot (or rot 0))
+     (scale-component :scale (or scale (v! 1 1)))))
 
 (defun render-ui-texture-impl (sam offset rotation scale pos anchor)
   (let ((tex (slot-value sam 'texture)))
@@ -325,37 +332,46 @@
                  :sam sam))))))
 
 (define-component-system render-ui-texture (entity-id alpha)
-    (ui-position-component texture-component) (camera-component)
-  (declare (ignore alpha))
+    ((tex-comp texture-component)
+     (pos-comp ui-position-component))
+    (camera-component)
   (with-components ((camera-pos position-component)
                     (camera-comp camera-component))
       *camera*
     (when (and camera-pos camera-comp)
-      (with-components ((tex-comp texture-component)
-                        (pos-comp ui-position-component))
-          entity-id
-        (with-slots (texture offset rotation scale) tex-comp
-          (with-slots (pos anchor) pos-comp
-            (render-ui-texture-impl (texture texture) offset rotation scale pos anchor)))))))
+      (with-slots (texture offset rotation scale) tex-comp
+        (with-slots (pos anchor) pos-comp
+          (render-ui-texture-impl (texture texture) offset rotation scale pos anchor))))))
 
 (define-component-system render-ui-text (entity-id alpha)
-    (ui-position-component text-component) (camera-component)
-  (declare (ignore alpha))
+    ((text-comp text-component)
+     (pos-comp ui-position-component))
+    (camera-component)
   (with-components ((camera-pos position-component)
                     (camera-comp camera-component))
       *camera*
     (when (and camera-pos camera-comp)
-      (with-components ((text-comp text-component)
-                        (pos-comp ui-position-component))
-          entity-id
-        (let ((font (ttf-font (slot-value text-comp 'font)))
-              (text (slot-value text-comp 'text)))
-          (unless (text-size-zero-p font text)
-            (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
-                   (sam (sample tex)))
-              (unwind-protect
-                   (with-slots (offset rotation scale) text-comp
-                     (with-slots (pos anchor) pos-comp
-                       (render-ui-texture-impl sam offset rotation scale pos anchor)))
-                (cepl:free sam)
-                (cepl:free tex)))))))))
+      (let ((font (ttf-font (slot-value text-comp 'font)))
+            (text (slot-value text-comp 'text)))
+        (unless (text-size-zero-p font text)
+          (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
+                 (sam (sample tex)))
+            (unwind-protect
+                 (with-slots (offset rotation scale) text-comp
+                   (with-slots (pos anchor) pos-comp
+                     (render-ui-texture-impl sam offset rotation scale pos anchor)))
+              (cepl:free sam)
+              (cepl:free tex))))))))
+
+(defclass ui-hitbox-component (component)
+  ((size :initarg :size
+         :initform (v! 1 1))))
+
+(defclass mouse-trigger-component (component)
+  ((callback :initarg :callback
+             :initform (lambda (event) (declare (ignore event))))))
+
+(defmethod copy-component ((component mouse-trigger-component))
+  (with-slots (callback) component
+    (make-instance 'mouse-trigger-component :callback callback)))
+

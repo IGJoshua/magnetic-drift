@@ -19,39 +19,38 @@
            :initform 200)))
 
 (define-component-system move-objects-with-velocity (entity-id dt)
-    (velocity-component position-component) ()
-  (with-components ((move velocity-component)
-                    (pos position-component))
-      entity-id
-    (v2-n:+ (slot-value pos 'pos)
-            (v2:*s (slot-value move 'vel)
-                   dt))))
+    ((move velocity-component)
+     (pos position-component))
+    ()
+  (v2-n:+ (slot-value pos 'pos)
+          (v2:*s (slot-value move 'vel)
+                 dt)))
 
 (define-component-system rotate-objects-with-angular-velocity (entity-id dt)
-    (angular-velocity-component rotation-component) ()
-  (with-components ((ang angular-velocity-component)
-                    (rot rotation-component))
-      entity-id
-    (incf (slot-value rot 'rot)
-          (* (slot-value ang 'ang-vel)
-             dt))))
+    ((ang angular-velocity-component)
+     (rot rotation-component))
+    ()
+  (incf (slot-value rot 'rot)
+        (* (slot-value ang 'ang-vel)
+           dt)))
 
 (define-component-system apply-uniform-friction-to-objects (entity-id dt)
-    (velocity-component uniform-friction-component) ()
-  (with-components ((move velocity-component)
-                    (friction uniform-friction-component))
-      entity-id
-    (v2-n:*s (slot-value move 'vel)
-             (- 1f0 (* dt (slot-value friction 'coeff))))))
+    ((move velocity-component)
+     (friction uniform-friction-component))
+    ()
+  (v2-n:*s (slot-value move 'vel)
+           (- 1f0 (* dt (slot-value friction 'coeff)))))
 
 (defvar *collidable-entities* nil)
 (defvar *mobile-collidable-entities* nil)
 
 (define-component-system mark-entities-for-collision (entity-id dt)
-    (collider-component position-component) ()
-  (declare (ignore dt))
+    (collider-component position-component
+     &optional
+     (velocity-component velocity-component))
+    ()
   (push entity-id *collidable-entities*)
-  (when (get-component entity-id 'velocity-component)
+  (when velocity-component
     (push entity-id *mobile-collidable-entities*)))
 
 (defun overlapping-p (a b)
