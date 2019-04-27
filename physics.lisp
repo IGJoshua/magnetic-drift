@@ -120,4 +120,4 @@
      (texture-component :texture "./res/tires_white.png"
                         :scale (v! 0.125
                                    0.125))
-     (collider-component :radius 5)))
+     (collider-component :radius 7)))
