@@ -174,41 +174,44 @@
   (when (active-p (get-component entity-id 'camera-component))
     (setf *camera* entity-id)))
 
-(define-component-system render-textured (entity-id alpha)
-    (position-component texture-component) (camera-component)
-  (declare (ignore alpha))
+(defun render-texture-impl (sam offset rotation scale pos-comp rot-comp scale-comp)
   (with-components ((camera-pos position-component)
                     (camera-comp camera-component))
       *camera*
     (when (and camera-pos camera-comp)
-      (with-components ((tex-comp texture-component)
-                        (pos-comp position-component)
-                        (rot-comp rotation-component)
-                        (scale-comp scale-component))
-          entity-id
-        (let* ((sam (texture (slot-value tex-comp 'texture)))
-               (tex (slot-value sam 'texture)))
-          (destructuring-bind (x y) (texture-base-dimensions tex)
-            (with-blending *blending-params*
-              (map-g #'textured-object-quad *quad-stream*
-                     :quad->model (world-matrix (slot-value tex-comp 'offset)
-                                                (float (slot-value tex-comp 'rotation)
-                                                       1f0)
-                                                (v2-n:* (v! x y)
-                                                        (slot-value tex-comp 'scale)))
-                     :model->world (world-matrix (slot-value pos-comp 'pos)
-                                                 (float (if rot-comp
-                                                            (slot-value rot-comp 'rot)
-                                                            0)
-                                                        1f0)
-                                                 (if scale-comp
-                                                     (slot-value scale-comp 'scale)
-                                                     (v! 1 1)))
-                     :world->view (view-matrix (slot-value camera-pos 'pos)
-                                               (let ((scale (/ (zoom camera-comp))))
-                                                 (v! scale scale)))
-                     :view->projection (ortho-projection)
-                     :sam sam))))))))
+      (let ((tex (slot-value sam 'texture)))
+        (destructuring-bind (x y) (texture-base-dimensions tex)
+          (with-blending *blending-params*
+            (map-g #'textured-object-quad *quad-stream*
+                   :quad->model (world-matrix offset
+                                              rotation
+                                              (v2-n:* (v! x y)
+                                                      scale))
+                   :model->world (world-matrix (slot-value pos-comp 'pos)
+                                               (float (if rot-comp
+                                                          (slot-value rot-comp 'rot)
+                                                          0)
+                                                      1f0)
+                                               (if scale-comp
+                                                   (slot-value scale-comp 'scale)
+                                                   (v! 1 1)))
+                   :world->view (view-matrix (slot-value camera-pos 'pos)
+                                             (let ((scale (/ (zoom camera-comp))))
+                                               (v! scale scale)))
+                   :view->projection (ortho-projection)
+                   :sam sam)))))))
+
+
+(define-component-system render-textured (entity-id alpha)
+    (position-component texture-component) (camera-component)
+  (declare (ignore alpha))
+  (with-components ((tex-comp texture-component)
+                    (pos-comp position-component)
+                    (rot-comp rotation-component)
+                    (scale-comp scale-component))
+      entity-id
+    (with-slots (texture offset rotation scale) tex-comp
+      (render-texture-impl (texture texture) offset rotation scale pos-comp rot-comp scale-comp))))
 
 (defclass text-component (component)
   ((font :initarg :font
@@ -279,44 +282,21 @@
 (define-component-system render-normal-text (entity-id alpha)
     (position-component text-component) (camera-component)
   (declare (ignore alpha))
-  (with-components ((camera-pos position-component)
-                    (camera-comp camera-component))
-      *camera*
-    (when (and camera-pos camera-comp)
-      (with-components ((text-comp text-component)
-                        (pos-comp position-component)
-                        (rot-comp rotation-component)
-                        (scale-comp scale-component))
-          entity-id
-        (let ((font (ttf-font (slot-value text-comp 'font)))
-              (text (slot-value text-comp 'text)))
-          (unless (text-size-zero-p font text)
-            (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
-                   (sam (sample tex)))
-              (unwind-protect
-                   (destructuring-bind (x y) (texture-base-dimensions tex)
-                     (with-blending *blending-params*
-                       (map-g #'textured-object-quad *quad-stream*
-                              :quad->model (world-matrix (slot-value text-comp 'offset)
-                                                         (float (slot-value text-comp 'rotation)
-                                                                1f0)
-                                                         (v2-n:* (v! x y)
-                                                                 (slot-value text-comp 'scale)))
-                              :model->world (world-matrix (slot-value pos-comp 'pos)
-                                                          (float (if rot-comp
-                                                                     (slot-value rot-comp 'rot)
-                                                                     0)
-                                                                 1f0)
-                                                          (if scale-comp
-                                                              (slot-value scale-comp 'scale)
-                                                              (v! 1 1)))
-                              :world->view (view-matrix (slot-value camera-pos 'pos)
-                                                        (let ((scale (/ (zoom camera-comp))))
-                                                          (v! scale scale)))
-                              :view->projection (ortho-projection)
-                              :sam sam)))
-                (cepl:free sam)
-                (cepl:free tex)))))))))
+  (with-components ((text-comp text-component)
+                    (pos-comp position-component)
+                    (rot-comp rotation-component)
+                    (scale-comp scale-component))
+      entity-id
+    (let ((font (ttf-font (slot-value text-comp 'font)))
+          (text (slot-value text-comp 'text)))
+      (unless (text-size-zero-p font text)
+        (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
+               (sam (sample tex)))
+          (unwind-protect
+               (with-slots (offset rotation scale) text-comp
+                 (render-texture-impl sam offset rotation scale pos-comp rot-comp scale-comp))
+            (cepl:free sam)
+            (cepl:free tex)))))))
 
 (defclass ui-position-component (component)
   ((anchor :initarg :anchor
