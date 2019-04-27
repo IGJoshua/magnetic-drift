@@ -185,7 +185,7 @@
           (with-blending *blending-params*
             (map-g #'textured-object-quad *quad-stream*
                    :quad->model (world-matrix offset
-                                              rotation
+                                              (float rotation 1f0)
                                               (v2-n:* (v! x y)
                                                       scale))
                    :model->world (world-matrix (slot-value pos-comp 'pos)
