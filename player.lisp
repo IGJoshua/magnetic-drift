@@ -29,80 +29,76 @@
                :initform 0.5)))
 
 (define-component-system update-car-velocity (entity-id dt)
-    (velocity-component player-input-component rotation-component) ()
-  (with-components ((move velocity-component)
-                    (rot rotation-component)
-                    (input-comp player-input-component))
-      entity-id
-    (with-slots (rot) rot
-      (with-slots (vel) move
-       (let* ((input (y (dir *input*)))
-              (facing-dir (v! (cos rot)
-                              (sin rot)))
-              (forward-speed (v2:dot facing-dir vel))
-              (to-add (v2-n:-
-                       (v2:*s facing-dir
-                              (* (slot-value input-comp 'accell)
-                                 dt
-                                 input))
-                       (v2:*s facing-dir
-                              (if (brake *input*)
-                                  (* forward-speed
-                                     (slot-value input-comp 'brake-strength)
-                                     dt)
-                                  0f0)))))
-         (unless (and (> (v2:dot to-add vel) 0)
-                      (>= (v2:length vel) (slot-value input-comp 'speed)))
-           (v2-n:+ vel
-                   to-add)))))))
+    ((move velocity-component)
+     (rot rotation-component)
+     (input-comp player-input-component))
+    ()
+  (with-slots (rot) rot
+    (with-slots (vel) move
+      (let* ((input (y (dir *input*)))
+             (facing-dir (v! (cos rot)
+                             (sin rot)))
+             (forward-speed (v2:dot facing-dir vel))
+             (to-add (v2-n:-
+                      (v2:*s facing-dir
+                             (* (slot-value input-comp 'accell)
+                                dt
+                                input))
+                      (v2:*s facing-dir
+                             (if (brake *input*)
+                                 (* forward-speed
+                                    (slot-value input-comp 'brake-strength)
+                                    dt)
+                                 0f0)))))
+        (unless (and (> (v2:dot to-add vel) 0)
+                     (>= (v2:length vel) (slot-value input-comp 'speed)))
+          (v2-n:+ vel
+                  to-add))))))
 
 (define-component-system update-car-angular-velocity (entity-id dt)
-    (velocity-component angular-velocity-component rotation-component player-input-component) ()
-  (declare (ignore dt))
-  (with-components ((ang-vel angular-velocity-component)
-                    (input player-input-component)
-                    (vel velocity-component)
-                    (rot rotation-component))
-      entity-id
-    (with-slots (ang-vel) ang-vel
-      (with-slots (vel) vel
-        (with-slots (rot) rot
-          (let ((dir (v! (cos rot)
-                         (sin rot))))
-            (setf ang-vel (* (- (x (dir *input*)))
-                             (slot-value input 'turning-speed)
-                             (/ (min (v2:length-squared vel) 10000f0)
-                                10000f0)
-                             (v2:dot (v2:normalize vel)
-                                              dir)))))))))
-
-(define-component-system apply-directional-friction-to-objects (entity-id dt)
-    (velocity-component directional-friction-component rotation-component) ()
-  (with-components ((vel velocity-component)
-                    (friction directional-friction-component)
-                    (rot rotation-component))
-      entity-id
+    ((ang-vel angular-velocity-component)
+     (input player-input-component)
+     (vel velocity-component)
+     (rot rotation-component))
+    ()
+  (with-slots (ang-vel) ang-vel
     (with-slots (vel) vel
       (with-slots (rot) rot
-        (with-slots (high-coeff low-coeff) friction
-          (v2-n:-
-           vel
-           (let* ((forward (v! (cos rot)
-                               (sin rot)))
-                  (right (- rot (/ pi 2)))
-                  (right (v! (cos right)
-                             (sin right)))
-                  (forward-speed (v2:dot vel forward))
-                  (right-speed (v2:dot vel right))
-                  (forward-speed (* forward-speed low-coeff dt))
-                  (right-speed (* right-speed
-                                  (- high-coeff
-                                     (* (/ high-coeff 1.4)
-                                        (v2:absolute-dot right
-                                                         (v2:normalize vel))))
-                                  dt)))
-             (v2-n:+ (v2-n:*s forward forward-speed)
-                     (v2-n:*s right right-speed)))))))))
+        (let ((dir (v! (cos rot)
+                       (sin rot))))
+          (setf ang-vel (* (- (x (dir *input*)))
+                           (slot-value input 'turning-speed)
+                           (/ (min (v2:length-squared vel) 10000f0)
+                              10000f0)
+                           (v2:dot (v2:normalize vel)
+                                   dir))))))))
+
+(define-component-system apply-directional-friction-to-objects (entity-id dt)
+    ((vel velocity-component)
+     (friction directional-friction-component)
+     (rot rotation-component))
+    ()
+  (with-slots (vel) vel
+    (with-slots (rot) rot
+      (with-slots (high-coeff low-coeff) friction
+        (v2-n:-
+         vel
+         (let* ((forward (v! (cos rot)
+                             (sin rot)))
+                (right (- rot (/ pi 2)))
+                (right (v! (cos right)
+                           (sin right)))
+                (forward-speed (v2:dot vel forward))
+                (right-speed (v2:dot vel right))
+                (forward-speed (* forward-speed low-coeff dt))
+                (right-speed (* right-speed
+                                (- high-coeff
+                                   (* (/ high-coeff 1.4)
+                                      (v2:absolute-dot right
+                                                       (v2:normalize vel))))
+                                dt)))
+           (v2-n:+ (v2-n:*s forward forward-speed)
+                   (v2-n:*s right right-speed))))))))
 
 (define-prototype car (&optional pos rot scale) ((transform pos rot scale))
     ((player-input-component)
