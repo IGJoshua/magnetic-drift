@@ -15,6 +15,8 @@
                                        render-tilemap
                                        render-textured
                                        render-normal-text
+                                       render-ui-texture
+                                       render-ui-text
                                        swap))
 
 (defun texture (filename)
@@ -83,6 +85,21 @@
   :vertex (quad-vert :vec2)
   :fragment (texture-frag :vec2))
 
+(defun-g ui-vert ((position :vec2)
+                  &uniform
+                  (quad->model :mat4)
+                  (model->clip :mat4))
+  (let* ((uvs (/ (+ (v! 1 1) position) 2.0))
+         (pos (v! position 0.0 1.0))
+         (pos (* quad->model pos))
+         (pos (* model->clip pos)))
+    (values pos
+            uvs)))
+
+(defpipeline-g textured-ui-quad ()
+  :vertex (ui-vert :vec2)
+  :fragment (texture-frag :vec2))
+
 (defun ortho-projection ()
   (destructuring-bind (x y) (cepl.viewports:viewport-dimensions (current-viewport))
     (rtg-math.projection:orthographic (float x) (float y) 0.1 1000.0)))
@@ -90,6 +107,12 @@
 (defun view-matrix (pos scale)
   (m! (/ (x scale)) 0 0 (/ (- (x pos)) (x scale))
       0 (/ (y scale)) 0 (/ (- (y pos)) (y scale))
+      0 0 1 0
+      0 0 0 1))
+
+(defun ui-matrix (pos scale)
+  (m! (/ (x scale)) 0 0 (/ (+ (x pos)) (x scale))
+      0 (/ (y scale)) 0 (/ (+ (y pos)) (y scale))
       0 0 1 0
       0 0 0 1))
 
@@ -211,6 +234,25 @@
    (scale :initarg :scale
           :initform (v! 1 1))))
 
+(defmethod copy-component ((comp text-component))
+  (with-slots (font text color point-size
+               bold italic underline strike-through
+               offset rotation scale)
+      comp
+    (make-instance
+     'text-component
+     :font font
+     :text (copy-seq text)
+     :color color
+     :point-size point-size
+     :bold bold
+     :italic italic
+     :underline underline
+     :strike-through strike-through
+     :offset (v! (x offset) (y offset))
+     :rotation rotation
+     :scale (v! (x scale) (y scale)))))
+
 (defun text-size-zero-p (ttf-font text)
   (cffi:with-foreign-objects ((w :int) (h :int))
     (sdl2-ttf::ttf-size-utf8 ttf-font text w h)
@@ -273,5 +315,67 @@
                                                           (v! scale scale)))
                               :view->projection (ortho-projection)
                               :sam sam)))
+                (cepl:free sam)
+                (cepl:free tex)))))))))
+
+(defclass ui-position-component (component)
+  ((anchor :initarg :anchor
+           :initform (v! 0 0)
+           :documentation "[-1,1] anchor to the viewport. -1,-1 is bottom-left")
+   (pos :initarg :pos
+        :initform (v! 0 0)
+        :documentation "Offset from anchor in pixel coordinates.")))
+
+(defmethod copy-component ((comp ui-position-component))
+  (with-slots (pos) comp
+    (make-instance 'position-component
+                   :pos (v! (x pos) (y comp)))))
+
+(defun render-ui-texture-impl (sam offset rotation scale pos anchor)
+  (let ((tex (slot-value sam 'texture)))
+    (destructuring-bind (x y) (texture-base-dimensions tex)
+      (destructuring-bind (vx vy) (cepl.viewports:viewport-dimensions (current-viewport))
+        (with-blending *blending-params*
+          (map-g #'textured-ui-quad *quad-stream*
+                 :quad->model (world-matrix offset
+                                            (float rotation 1f0)
+                                            (v2-n:* (v! x y) scale))
+                 :model->clip (ui-matrix (v2-n:+ (v2-n:* (v! vx vy) anchor) pos)
+                                         (v! vx vy))
+                 :sam sam))))))
+
+(define-component-system render-ui-texture (entity-id alpha)
+    (ui-position-component texture-component) (camera-component)
+  (declare (ignore alpha))
+  (with-components ((camera-pos position-component)
+                    (camera-comp camera-component))
+      *camera*
+    (when (and camera-pos camera-comp)
+      (with-components ((tex-comp texture-component)
+                        (pos-comp ui-position-component))
+          entity-id
+        (with-slots (texture offset rotation scale) tex-comp
+          (with-slots (pos anchor) pos-comp
+            (render-ui-texture-impl (texture texture) offset rotation scale pos anchor)))))))
+
+(define-component-system render-ui-text (entity-id alpha)
+    (ui-position-component text-component) (camera-component)
+  (declare (ignore alpha))
+  (with-components ((camera-pos position-component)
+                    (camera-comp camera-component))
+      *camera*
+    (when (and camera-pos camera-comp)
+      (with-components ((text-comp text-component)
+                        (pos-comp ui-position-component))
+          entity-id
+        (let ((font (ttf-font (slot-value text-comp 'font)))
+              (text (slot-value text-comp 'text)))
+          (unless (text-size-zero-p font text)
+            (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
+                   (sam (sample tex)))
+              (unwind-protect
+                   (with-slots (offset rotation scale) text-comp
+                     (with-slots (pos anchor) pos-comp
+                       (render-ui-texture-impl sam offset rotation scale pos anchor)))
                 (cepl:free sam)
                 (cepl:free tex)))))))))
