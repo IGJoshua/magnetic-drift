@@ -104,7 +104,7 @@
     ((player-input-component)
      (velocity-component)
      (angular-velocity-component)
-     (collider-component :radius 15)
+     (collider-component :radius 10)
      (directional-friction-component :low-coeff 0.9
                                      :high-coeff 7)
      (texture-component :texture "./res/car_blue_1.png"
