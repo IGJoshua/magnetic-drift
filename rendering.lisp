@@ -116,8 +116,8 @@
       0 0 1 0
       0 0 0 1))
 
-(defun world-matrix (pos rot scale)
-  (rtg-math.matrix4:* (rtg-math.matrix4:translation (v! pos 0))
+(defun world-matrix (pos rot scale z-level)
+  (rtg-math.matrix4:* (rtg-math.matrix4:translation (v! pos z-level))
                       (rtg-math.matrix4:rotation-z (float rot))
                       (rtg-math.matrix4:scale (v! scale 1))))
 
@@ -126,7 +126,6 @@
 
 (defun init-renderer ()
   (setf (clear-color) (v! 0.57254905 0.65882355 0.7176471 1.0))
-  (gl:disable :depth-test)
   (sdl2:gl-set-swap-interval 1)
   (unless *quad-stream*
     (setf *quad-stream* (nineveh:get-quad-stream-v2)))
@@ -150,11 +149,19 @@
    (rotation :initarg :rotation
              :initform 0)
    (scale :initarg :scale
-          :initform (v! 1 1))))
+          :initform (v! 1 1))
+   (z-level :initarg :z-level
+            :initform 0)))
 
 (defmethod copy-component ((comp texture-component))
   (make-instance 'texture-component
-                 :texture (slot-value comp 'texture-component)))
+                 :texture (slot-value comp 'texture-component)
+                 :offset (v! (x (slot-value comp 'offset))
+                             (y (slot-value comp 'offset)))
+                 :rotation (slot-value comp 'rotation)
+                 :scale (v! (x (slot-value comp 'scale))
+                            (y (slot-value comp 'scale)))
+                 :z-level (slot-value comp 'z-level)))
 
 (define-global-system clear-fbo (alpha)
   (declare (ignore alpha))
@@ -175,7 +182,7 @@
   (when (active-p camera-comp)
     (setf *camera* entity-id)))
 
-(defun render-texture-impl (sam offset rotation scale pos-comp rot-comp scale-comp)
+(defun render-texture-impl (sam offset rotation scale z-level pos-comp rot-comp scale-comp)
   (with-components ((camera-pos position-component)
                     (camera-comp camera-component))
       *camera*
@@ -187,7 +194,8 @@
                    :quad->model (world-matrix offset
                                               (float rotation 1f0)
                                               (v2-n:* (v! x y)
-                                                      scale))
+                                                      scale)
+                                              z-level)
                    :model->world (world-matrix (slot-value pos-comp 'pos)
                                                (float (if rot-comp
                                                           (slot-value rot-comp 'rot)
@@ -195,7 +203,8 @@
                                                       1f0)
                                                (if scale-comp
                                                    (slot-value scale-comp 'scale)
-                                                   (v! 1 1)))
+                                                   (v! 1 1))
+                                               0)
                    :world->view (view-matrix (slot-value camera-pos 'pos)
                                              (let ((scale (/ (zoom camera-comp))))
                                                (v! scale scale)))
@@ -210,8 +219,8 @@
      (rot-comp rotation-component)
      (scale-comp scale-component))
     ()
-  (with-slots (texture offset rotation scale) tex-comp
-    (render-texture-impl (texture texture) offset rotation scale pos-comp rot-comp scale-comp)))
+  (with-slots (texture offset rotation scale z-level) tex-comp
+    (render-texture-impl (texture texture) offset rotation scale z-level pos-comp rot-comp scale-comp)))
 
 (defclass text-component (component)
   ((font :initarg :font
@@ -235,12 +244,14 @@
    (rotation :initarg :rotation
              :initform 0)
    (scale :initarg :scale
-          :initform (v! 1 1))))
+          :initform (v! 1 1))
+   (z-level :initarg :z-level
+            :initform 0)))
 
 (defmethod copy-component ((comp text-component))
   (with-slots (font text color point-size
                bold italic underline strike-through
-               offset rotation scale)
+               offset rotation scale z-level)
       comp
     (make-instance
      'text-component
@@ -254,7 +265,8 @@
      :strike-through strike-through
      :offset (v! (x offset) (y offset))
      :rotation rotation
-     :scale (v! (x scale) (y scale)))))
+     :scale (v! (x scale) (y scale))
+     :z-level z-level)))
 
 (defun ttf-font-from-text-comp (text-comp)
   (with-slots (font point-size bold italic underline strike-through)
@@ -300,8 +312,8 @@
       (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
              (sam (sample tex)))
         (unwind-protect
-             (with-slots (offset rotation scale) text-comp
-               (render-texture-impl sam offset rotation scale pos-comp rot-comp scale-comp))
+             (with-slots (offset rotation scale z-level) text-comp
+               (render-texture-impl sam offset rotation scale z-level pos-comp rot-comp scale-comp))
           (cepl:free sam)
           (cepl:free tex))))))
 
@@ -323,7 +335,7 @@
      (rotation-component :rot (or rot 0))
      (scale-component :scale (or scale (v! 1 1)))))
 
-(defun render-ui-texture-impl (sam offset rotation scale pos anchor)
+(defun render-ui-texture-impl (sam offset rotation scale z-level pos anchor)
   (let ((tex (slot-value sam 'texture)))
     (destructuring-bind (x y) (texture-base-dimensions tex)
       (destructuring-bind (vx vy) (cepl.viewports:viewport-dimensions (current-viewport))
@@ -331,7 +343,8 @@
           (map-g #'textured-ui-quad *quad-stream*
                  :quad->model (world-matrix offset
                                             (float rotation 1f0)
-                                            (v2-n:* (v! x y) scale))
+                                            (v2-n:* (v! x y) scale)
+                                            z-level)
                  :model->clip (ui-matrix (v2-n:+ (v2-n:* (v! vx vy) anchor) pos)
                                          (v! vx vy))
                  :sam sam))))))

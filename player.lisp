@@ -110,4 +110,5 @@
      (texture-component :texture "./res/car_blue_1.png"
                         :rotation (- (/ pi 2))
                         :scale (v! 0.125f0
-                                   0.125f0))))
+                                   0.125f0)
+                        :z-level 1)))
