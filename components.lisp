@@ -13,8 +13,9 @@
     entity-id))
 
 (defun get-component (entity-id component-name)
-  (when entity-id
-    (gethash component-name (slot-value (gethash entity-id *entities*) 'components))))
+  (let ((entity (gethash entity-id *entities*)))
+    (when entity
+      (gethash component-name (slot-value entity 'components)))))
 
 (defun remove-component (entity-id component-name)
   (when entity-id
