@@ -13,7 +13,8 @@
                #:nineveh #:dirt
                #:rtg-math #:rtg-math.vari
                #:livesupport #:temporal-functions)
-  :components ((:file "package")
+  :components ((:file "cepl-patch")
+               (:file "package")
                (:file "input")
                (:file "events")
                (:file "entities")
