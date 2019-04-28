@@ -10,6 +10,8 @@
 (defvar *blending-params* nil)
 
 (defparameter *scene-render-systems* '(resize-viewport
+                                       check-mouse-over-entity
+                                       check-mouse-state
                                        clear-fbo
                                        select-camera
                                        render-tilemap
