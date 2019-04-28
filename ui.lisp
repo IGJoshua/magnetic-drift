@@ -80,4 +80,20 @@
        ))
     (setf *mouse-down* mouse-down-p)))
 
+(defclass mouse-trigger-component (component)
+  ((callback :initarg :callback
+             :initform (lambda (event-type entity-id local-pos)
+                         (declare (ignore event-type entity-id local-pos))))))
 
+(defmethod copy-component ((component mouse-trigger-component))
+  (with-slots (callback) component
+    (make-instance 'mouse-trigger-component :callback callback)))
+
+(define-event-handler dispatch-mouse-event (event) mouse-event
+  (destructuring-bind (event-type entity-id local-pos)
+      event
+    (when entity-id
+      (with-components ((trigger mouse-trigger-component))
+          entity-id
+        (when trigger
+          (funcall (slot-value trigger 'callback) event-type entity-id local-pos))))))
