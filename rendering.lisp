@@ -256,6 +256,11 @@
      :rotation rotation
      :scale (v! (x scale) (y scale)))))
 
+(defun ttf-font-from-text-comp (text-comp)
+  (with-slots (font point-size bold italic underline strike-through)
+      text-comp
+    (ttf-font font :point-size point-size :bold bold :italic italic :underline underline :strike-through strike-through)))
+
 (define-prototype normal-text (&key pos rot scale font text) ((transform pos rot scale))
     ((text-component :font font :text text)))
 
@@ -289,7 +294,7 @@
      (rot-comp rotation-component)
      (scale-comp scale-component))
     (camera-component)
-  (let ((font (ttf-font (slot-value text-comp 'font)))
+  (let ((font (ttf-font-from-text-comp text-comp))
         (text (slot-value text-comp 'text)))
     (unless (text-size-zero-p font text)
       (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
@@ -351,7 +356,7 @@
                     (camera-comp camera-component))
       *camera*
     (when (and camera-pos camera-comp)
-      (let ((font (ttf-font (slot-value text-comp 'font)))
+      (let ((font (ttf-font-from-text-comp text-comp))
             (text (slot-value text-comp 'text)))
         (unless (text-size-zero-p font text)
           (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
