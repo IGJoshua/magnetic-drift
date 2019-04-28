@@ -102,7 +102,8 @@
                                      :quad->model
                                      (world-matrix (v! 0 0)
                                                    0
-                                                   (v! tile-size tile-size))
+                                                   (v! tile-size tile-size)
+                                                   -900)
                                      :model->world
                                      (world-matrix (v2-n:+
                                                     (v!
@@ -112,7 +113,8 @@
                                                         2 tile-size))
                                                     (slot-value pos 'pos))
                                                    0
-                                                   (v! 1 1))
+                                                   (v! 1 1)
+                                                   0)
                                      :world->view
                                      (view-matrix (slot-value camera-pos 'pos)
                                                   (let ((scale (/ (zoom camera-comp))))
