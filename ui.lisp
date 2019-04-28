@@ -18,11 +18,11 @@
      (ui-hitbox ui-hitbox-component)
      &optional
      (scale-comp scale-component))
-    (rotation-component)
+    ()
   (with-slots (anchor pos) ui-pos
     (with-slots (size) ui-hitbox
       (let* ((viewport-size (cepl:viewport-resolution (cepl:current-viewport)))
-             (top-left (v2-n:+ (v2-n:* (v2:+ anchor (v2! 1 1)) viewport-size)
+             (top-left (v2-n:+ (v2-n:* (v2:+ anchor (v2! 1 1)) viewport-size #.(v2! 1/2 1/2))
                                       (v2! (x pos) (- (y pos)))))
              (bottom-right (v2-n:+ (v2:* size (if scale-comp (slot-value scale-comp 'scale) #.(v! 1 1)))
                                    top-left))
