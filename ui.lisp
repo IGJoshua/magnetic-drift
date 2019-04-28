@@ -55,7 +55,7 @@
      (publish-event 'mouse-event (list 'mouse-leave *prev-mouse-over-entity* *prev-mouse-over-local-pos*)))
     (*mouse-over-entity*
      ;; Got it
-     (publish-event 'mouse-event (list 'mouse-stay *mouse-over-entity* *mouse-over-local-pos*)))
+     (publish-event 'mouse-event (list 'mouse-enter *mouse-over-entity* *mouse-over-local-pos*)))
     (t
      ;; Hovering over nothing
      (publish-event 'mouse-event '(mouse-stay nil nil))))
