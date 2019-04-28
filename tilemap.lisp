@@ -59,28 +59,29 @@
       (maphash
        (lambda (k v)
          (declare (ignore v))
-         (setf (gethash k positions)
-               (let ((count 0))
-                 (list
-                  (make-buffer-stream
-                   (list quad
-                         (cons
-                          (let ((l (loop :for row :across tiles
-                                         :for row-num :from 0
-                                         :nconc
-                                         (loop :for col :across row
-                                               :for col-num :from 0
-                                               :when (eql col k)
-                                                 :do (incf count)
-                                               :when (eql col k)
-                                                 :collect (v! (* col-num tile-size)
-                                                              (- (* row-num tile-size)))))))
+         (let* ((count 0)
+                (l (loop :for row :across tiles
+                         :for row-num :from 0
+                         :nconc
+                         (loop :for col :across row
+                               :for col-num :from 0
+                               :when (eql col k)
+                                 :do (incf count)
+                               :when (eql col k)
+                                 :collect (v! (* col-num tile-size)
+                                              (- (* row-num tile-size)))))))
+           (when l
+             (setf (gethash k positions)
+                   (list
+                    (make-buffer-stream
+                     (list quad
+                           (cons
                             (make-gpu-array
                              l
                              :element-type :vec2
-                             :dimensions (length l)))
-                          1)))
-                  count))))
+                             :dimensions (length l))
+                            1)))
+                    count)))))
        textures))))
 
 (defun load-tilemap (filepath)
