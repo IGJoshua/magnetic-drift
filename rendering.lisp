@@ -10,8 +10,6 @@
 (defvar *blending-params* nil)
 
 (defparameter *scene-render-systems* '(resize-viewport
-                                       check-mouse-over-entity
-                                       check-mouse-state
                                        clear-fbo
                                        select-camera
                                        render-tilemap
@@ -19,9 +17,7 @@
                                        render-normal-text
                                        render-ui-texture
                                        render-ui-text
-                                       swap
-                                       size-texture-hitbox
-                                       size-text-hitbox))
+                                       swap))
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
