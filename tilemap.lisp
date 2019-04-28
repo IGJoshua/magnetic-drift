@@ -54,7 +54,8 @@
                        (v! 0 0)
                        (v! 1 1)
                        (v! 0 1))
-                 :element-type :vec2)))
+                 :element-type :vec2
+                 :dimensions 6)))
       (maphash
        (lambda (k v)
          (declare (ignore v))
@@ -74,10 +75,10 @@
                                                :when (eql col k)
                                                  :collect (v! (* col-num tile-size)
                                                               (- (* row-num tile-size)))))))
-                            (print l)
                             (make-gpu-array
                              l
-                             :element-type :vec2))
+                             :element-type :vec2
+                             :dimensions (length l)))
                           1)))
                   count))))
        textures))))
@@ -92,7 +93,6 @@
             :for line := (read-line file nil nil)
             :while line
             :do
-               (format t "Reading line: '~a'~%" line)
                (when (and (> (length line) 3)
                           (string= (subseq line 0 3)
                                    "---"))
