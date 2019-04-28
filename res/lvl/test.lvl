@@ -1,10 +1,11 @@
 ---TEXTURES
 # ./res/land_dirt05.png
++ ./res/Tiles/Asphalt road/road_asphalt01.png
 ---MAP
 #####
-#####
-#####
-#####
+#+++#
+#+#+#
+#+++#
 #####
 ---OBJECTS
 (instantiate-prototype 'camera)
