@@ -19,7 +19,9 @@
                                        render-normal-text
                                        render-ui-texture
                                        render-ui-text
-                                       swap))
+                                       swap
+                                       size-texture-hitbox
+                                       size-text-hitbox))
 
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))

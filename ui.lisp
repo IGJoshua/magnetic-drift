@@ -104,3 +104,20 @@
           entity-id
         (when trigger
           (funcall (slot-value trigger 'callback) event-type entity-id local-pos))))))
+
+(define-component-system size-texture-hitbox (entity-id alpha)
+    ((tex-comp texture-component)
+     (hitbox-comp ui-hitbox-component))
+    ()
+  (let* ((sam (texture (slot-value tex-comp 'texture)))
+         (tex (slot-value sam 'texture)))
+    (destructuring-bind (width height) (texture-base-dimensions tex)
+      (setf (slot-value hitbox-comp 'size) (v2! width height)))))
+
+(define-component-system size-text-hitbox (entity-id alpha)
+    ((text-comp text-component)
+     (hitbox-comp ui-hitbox-component))
+    ()
+  (multiple-value-bind (width height)
+      (sdl2-ttf:size-text (ttf-font-from-text-comp text-comp) (slot-value text-comp 'text))
+    (setf (slot-value hitbox-comp 'size) (v2! width height))))
