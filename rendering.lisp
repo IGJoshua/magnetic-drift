@@ -367,16 +367,3 @@
                      (render-ui-texture-impl sam offset rotation scale pos anchor)))
               (cepl:free sam)
               (cepl:free tex))))))))
-
-(defclass ui-hitbox-component (component)
-  ((size :initarg :size
-         :initform (v! 1 1))))
-
-(defclass mouse-trigger-component (component)
-  ((callback :initarg :callback
-             :initform (lambda (event) (declare (ignore event))))))
-
-(defmethod copy-component ((component mouse-trigger-component))
-  (with-slots (callback) component
-    (make-instance 'mouse-trigger-component :callback callback)))
-
