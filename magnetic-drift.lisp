@@ -8,6 +8,12 @@
 (defvar *car* nil)
 
 (defparameter *scene-physics-systems* '(global-move-camera
+                                        reset-mouse-over-entity
+                                        size-texture-hitbox
+                                        size-text-hitbox
+                                        check-mouse-ui-hitbox
+                                        check-mouse-over-entity
+                                        check-mouse-state
                                         update-car-velocity
                                         update-car-angular-velocity
                                         move-objects-with-velocity

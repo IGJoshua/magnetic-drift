@@ -20,6 +20,7 @@
                (:file "components")
                (:file "systems")
                (:file "rendering")
+               (:file "ui")
                (:file "tilemap")
                (:file "physics")
                (:file "player")
