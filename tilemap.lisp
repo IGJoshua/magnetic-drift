@@ -98,7 +98,6 @@
                           (string= (subseq line 0 3)
                                    "---"))
                  (setf state (subseq line 3)))
-               (format t "Currently in the ~a state~%" state)
                (alexandria:switch (state :test #'string=)
                  ("OBJECTS"
                   (unless (string= line
