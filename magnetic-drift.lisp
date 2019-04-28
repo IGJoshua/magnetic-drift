@@ -34,21 +34,23 @@
 (defun spawn-default-entities ()
   (instantiate-prototype 'camera)
   (instantiate-prototype 'car)
-  (let ((texs (make-hash-table)))
+  (let* ((texs (make-hash-table))
+         (tilemap-component (make-instance 'tilemap-component
+                                           :tiles (apply
+                                                   #'vector
+                                                   (loop :for y :in (cepl-utils:range 10)
+                                                         :collect (apply
+                                                                   #'vector
+                                                                   (loop :for x :in (cepl-utils:range 5)
+                                                                         :collect #\#))))
+                                           :textures texs)))
     (setf (gethash #\# texs) "./res/land_dirt05.png")
+    (tilemap-recalc-positions tilemap-component)
     (add-component
      (add-component
       (make-entity)
       (make-instance 'position-component))
-     (make-instance 'tilemap-component
-                    :tiles (apply
-                            #'vector
-                            (loop :for y :in (cepl-utils:range 10)
-                                  :collect (apply
-                                            #'vector
-                                            (loop :for x :in (cepl-utils:range 5)
-                                                  :collect #\#))))
-                    :textures texs))))
+     tilemap-component)))
 
 (defun init ()
   (init-entities)
