@@ -25,7 +25,7 @@
   (with-open-file (file filepath)
     (let ((str nil)
           (tilemap (make-instance 'tilemap-component))
-          (tiles '()))
+          (tiles (make-array 0 :fill-pointer t :adjustable t)))
       (loop :with state := nil
             :with objects-str := nil
             :for line := (read-line file nil nil)
@@ -58,10 +58,10 @@
                     (let ((row (apply #'vector
                                       (loop :for char :across line
                                             :collect char))))
-                      (push row tiles)))))
+                      (vector-push-extend row tiles)))))
             :finally (setf str objects-str))
       (setf (slot-value tilemap 'tiles)
-            (apply #'vector tiles))
+            tiles)
       (values
        tilemap
        (when str
@@ -109,8 +109,8 @@
                                                     (v!
                                                      (* col-num
                                                         2 tile-size)
-                                                     (* row-num
-                                                        2 tile-size))
+                                                     (- (* row-num
+                                                           2 tile-size)))
                                                     (slot-value pos 'pos))
                                                    0
                                                    (v! 1 1)
