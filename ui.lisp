@@ -13,6 +13,11 @@
 (defvar *mouse-over-entity* nil)
 (defvar *mouse-over-local-pos* nil)
 
+(define-global-system reset-mouse-over-entity (dt)
+  (declare (ignore dt))
+  (setf *mouse-over-entity* nil
+        *mouse-over-local-pos* nil))
+
 (define-component-system check-mouse-ui-hitbox (entity-id alpha)
     ((ui-pos ui-position-component)
      (ui-hitbox ui-hitbox-component)
