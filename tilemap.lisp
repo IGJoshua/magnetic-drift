@@ -54,8 +54,7 @@
                        (v! 0 0)
                        (v! 1 1)
                        (v! 0 1))
-                 :element-type :vec2
-                 :dimensions 6)))
+                 :element-type :vec2)))
       (maphash
        (lambda (k v)
          (declare (ignore v))
@@ -78,8 +77,7 @@
                            (cons
                             (make-gpu-array
                              l
-                             :element-type :vec2
-                             :dimensions (length l))
+                             :element-type :vec2)
                             1)))
                     count)))))
        textures))))
@@ -150,28 +148,30 @@
                     (camera-comp camera-component))
       *camera*
     (when (and camera-pos camera-comp)
-      (let ((tile-size (slot-value tilemap 'tile-size)))
+      (let* ((tile-size (slot-value tilemap 'tile-size))
+             (quad->model (world-matrix (v! 0 (- tile-size))
+                                        0
+                                        (v! tile-size tile-size)
+                                        -900))
+             (model->world (world-matrix (slot-value pos 'pos)
+                                         0
+                                         (v! 1 1)
+                                         0))
+             (world->view (view-matrix (slot-value camera-pos 'pos)
+                                       (let ((scale (/ (zoom camera-comp))))
+                                         (v! scale scale))))
+             (view->projection (ortho-projection)))
         (maphash
          (lambda (k v)
            (let ((tex-name (gethash k (slot-value tilemap 'textures))))
              (when tex-name
                (let ((sam (texture tex-name)))
+                 (print (list (second v) (buffer-stream-length (first v))))
                  (with-instances (second v)
                    (map-g #'instanced-quad (first v)
-                          :quad->model
-                          (world-matrix (v! 0 (- tile-size))
-                                        0
-                                        (v! tile-size tile-size)
-                                        -900)
-                          :model->world
-                          (world-matrix (slot-value pos 'pos)
-                                        0
-                                        (v! 1 1)
-                                        0)
-                          :world->view
-                          (view-matrix (slot-value camera-pos 'pos)
-                                       (let ((scale (/ (zoom camera-comp))))
-                                         (v! scale scale)))
-                          :view->projection (ortho-projection)
+                          :quad->model quad->model
+                          :model->world model->world
+                          :world->view world->view
+                          :view->projection view->projection
                           :sam sam))))))
          (slot-value tilemap 'positions))))))
