@@ -120,3 +120,22 @@
                         :scale (v! 0.125
                                    0.125))
      (collider-component :radius 7)))
+
+(defun line-circle-classify (line-pos line-angle line-length
+                             circle-pos circle-radius)
+  (let* ((line-dir (v! (cos line-angle)
+                       (sin line-angle)))
+         (closest-point-dist (max 0f0
+                                  (min (v2:dot line-dir
+                                               (v2:- circle-pos
+                                                     line-pos))
+                                       line-length)))
+         (closest-point (v2-n:+ (v2:*s line-dir
+                                       closest-point-dist)
+                                line-pos))
+         (circle->closest-point (v2:- closest-point
+                                      circle-pos))
+         (penetration-depth (- circle-radius (v2:length circle->closest-point))))
+    (when (> penetration-depth 0)
+      (values (v2-n:normalize (v2-n:negate circle->closest-point))
+              penetration-depth))))
