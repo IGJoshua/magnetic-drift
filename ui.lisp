@@ -22,10 +22,12 @@
   (with-slots (anchor pos) ui-pos
     (with-slots (size) ui-hitbox
       (let* ((viewport-size (cepl:viewport-resolution (cepl:current-viewport)))
+             (scale-vec (if scale-comp (slot-value scale-comp 'scale) #.(v! 1 1)))
+             (scaled-size (v2:* scale-vec size))
              (top-left (v2-n:+ (v2-n:* (v2:+ anchor (v2! 1 1)) viewport-size #.(v2! 1/2 1/2))
-                                      (v2! (x pos) (- (y pos)))))
-             (bottom-right (v2-n:+ (v2:* size (if scale-comp (slot-value scale-comp 'scale) #.(v! 1 1)))
-                                   top-left))
+                               (v2! (x pos) (- (y pos)))
+                               (v2! (* (x scaled-size) -1/2) (* (y scaled-size) -1/2))))
+             (bottom-right (v2-n:+ scaled-size top-left))
              (mouse (skitter:mouse))
              (mouse-pos (skitter:mouse-pos mouse)))
         ;; Assume AABB need to account for rotation component later
