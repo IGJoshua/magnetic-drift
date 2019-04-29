@@ -24,8 +24,8 @@
   :vertex (instanced-quad-vert :vec2 :vec2)
   :fragment (texture-frag :vec2))
 
-;; TODO: Make the tilemap take a 2d list and construct the necessary
-;;       instance data to make one draw call per texture
+(defparameter *tilemap-id* nil)
+
 (defclass tilemap-component (component)
   ((tiles :initarg :tiles
           :initform nil)

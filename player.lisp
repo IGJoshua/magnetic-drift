@@ -2,15 +2,20 @@
 
 (in-package #:magnetic-drift)
 
-(define-global-system global-move-camera (dt)
-  (when (entity-exists-p *camera*)
-    (with-components ((pos-comp position-component))
-        *camera*
-      (v2-n:+ (slot-value pos-comp 'pos)
-              (v2:*s (cam-dir *input*)
-                     (* 1000.0 dt
-                        (if (brake *input*)
-                            0.1 1.0)))))))
+(define-global-system move-player-camera (dt)
+  (when (and *camera* *car*)
+    (with-components ((car-pos position-component)
+                      (car-vel velocity-component))
+        *car*
+      (with-components ((cam-pos position-component))
+          *camera*
+        (setf (slot-value cam-pos 'pos)
+              (v2:lerp (slot-value cam-pos 'pos)
+                       (v2-n:+ (v2:*s (slot-value car-vel 'vel)
+                                      (* dt 32f0))
+                               (slot-value car-pos 'pos))
+                       (* dt dt
+                          (v2:length (slot-value car-vel 'vel)))))))))
 
 (defclass player-input-component (component)
   ((accell :initarg :accell
@@ -33,6 +38,7 @@
      (rot rotation-component)
      (input-comp player-input-component))
     ()
+  (setf *car* entity-id)
   (with-slots (rot) rot
     (with-slots (vel) move
       (let* ((input (y (dir *input*)))
@@ -72,8 +78,6 @@
                               10000f0)
                            (v2:dot (v2:normalize vel)
                                    dir))))))))
-
-(defparameter *tilemap-id* nil)
 
 (define-component-system apply-directional-friction-to-objects (entity-id dt)
     ((pos position-component)
