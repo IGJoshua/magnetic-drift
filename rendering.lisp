@@ -15,6 +15,7 @@
                                        render-tilemap
                                        render-textured
                                        render-normal-text
+                                       clear-depth
                                        render-ui-texture
                                        render-ui-text
                                        swap))
@@ -111,8 +112,8 @@
       0 0 0 1))
 
 (defun ui-matrix (pos scale)
-  (m! (/ (x scale)) 0 0 (/ (+ (x pos)) (x scale))
-      0 (/ (y scale)) 0 (/ (+ (y pos)) (y scale))
+  (m! (/ (x scale)) 0 0 (/ (x pos) (x scale) 0.5f0)
+      0 (/ (y scale)) 0 (/ (y pos) (y scale) 0.5f0)
       0 0 1 0
       0 0 0 1))
 
@@ -166,6 +167,15 @@
 (define-global-system clear-fbo (alpha)
   (declare (ignore alpha))
   (clear-fbo (fbo-bound (cepl-context))))
+
+
+(define-global-system clear-depth (alpha)
+  (declare (ignore alpha))
+  (let ((fbo (fbo-bound (cepl-context))))
+    (with-fbo-bound (fbo :target :draw-framebuffer
+                         :with-blending nil
+                         :with-viewport nil)
+      (gl:clear :depth-buffer))))
 
 (define-global-system resize-viewport (alpha)
   (declare (ignore alpha))
@@ -345,7 +355,9 @@
                                             (float rotation 1f0)
                                             (v2-n:* (v! x y) scale)
                                             z-level)
-                 :model->clip (ui-matrix (v2-n:+ (v2-n:* (v! vx vy) anchor) pos)
+                 :model->clip (ui-matrix (v2-n:+ (v2-n:* (v! (* vx 0.5f0) (* vy 0.5f0))
+                                                         anchor)
+                                                 pos)
                                          (v! vx vy))
                  :sam sam))))))
 
@@ -359,7 +371,7 @@
     (when (and camera-pos camera-comp)
       (with-slots (texture offset rotation scale) tex-comp
         (with-slots (pos anchor) pos-comp
-          (render-ui-texture-impl (texture texture) offset rotation scale pos anchor))))))
+          (render-ui-texture-impl (texture texture) offset rotation scale 0 pos anchor))))))
 
 (define-component-system render-ui-text (entity-id alpha)
     ((text-comp text-component)
@@ -377,6 +389,6 @@
             (unwind-protect
                  (with-slots (offset rotation scale) text-comp
                    (with-slots (pos anchor) pos-comp
-                     (render-ui-texture-impl sam offset rotation scale pos anchor)))
+                     (render-ui-texture-impl sam offset rotation scale 0 pos anchor)))
               (cepl:free sam)
               (cepl:free tex))))))))

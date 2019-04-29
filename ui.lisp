@@ -29,10 +29,12 @@
       (let* ((viewport-size (cepl:viewport-resolution (cepl:current-viewport)))
              (scale-vec (if scale-comp (slot-value scale-comp 'scale) #.(v! 1 1)))
              (scaled-size (v2:* scale-vec size))
-             (top-left (v2-n:+ (v2-n:* (v2:+ anchor (v2! 1 1)) viewport-size #.(v2! 1/2 1/2))
+             (top-left (v2-n:+ (v2-n:* (v2! (* (+ (x anchor) 1) 0.5f0)
+                                            (- 1 (* (+ (y anchor) 1) 0.5f0)))
+                                       viewport-size)
                                (v2! (x pos) (- (y pos)))
                                (v2! (* (x scaled-size) -1/2) (* (y scaled-size) -1/2))))
-             (bottom-right (v2-n:+ scaled-size top-left))
+             (bottom-right (v2:+ scaled-size top-left))
              (mouse (skitter:mouse))
              (mouse-pos (skitter:mouse-pos mouse)))
         ;; Assume AABB need to account for rotation component later
@@ -121,3 +123,62 @@
   (multiple-value-bind (width height)
       (sdl2-ttf:size-text (ttf-font-from-text-comp text-comp) (slot-value text-comp 'text))
     (setf (slot-value hitbox-comp 'size) (v2! width height))))
+
+(defun do-button-callback (callback on-pressed event-type entity-id local-pos)
+  (funcall callback event-type entity-id local-pos)
+    (when (eq event-type 'mouse-release)
+      (funcall on-pressed entity-id local-pos)))
+
+(defun make-button-callback (callback on-pressed)
+  (lambda (event-type entity-id local-pos)
+    (do-button-callback callback on-pressed event-type entity-id local-pos)))
+
+(define-prototype texture-button (texture &key callback on-pressed anchor pos) ()
+    ((ui-position-component :anchor (or anchor (v2! 0 0)) :pos (or pos (v2! 0 0)))
+     (ui-hitbox-component)
+     (mouse-trigger-component :callback (make-button-callback (or callback (lambda (x y z) (declare (ignore x y z))))
+                                                              (or on-pressed (lambda (x y) (declare (ignore x y))))))
+     (texture-component :texture texture)))
+()
+(defclass toggle-state ()
+  ((callback :initarg :callback)
+   (normal :initarg :normal)
+   (hover :initarg :hover)
+   (pressed :initarg :pressed)
+   (pressed-p :initform nil)))
+
+(defun do-texture-toggle (toggle-state event-type entity-id local-pos)
+  (with-slots (callback normal hover pressed pressed-p) toggle-state
+    (with-components ((tex-comp texture-component)) entity-id
+      (when tex-comp
+        (with-slots (texture) tex-comp
+          (setf pressed-p
+                (case event-type
+                  ((mouse-click) t)
+                  ((mouse-release mouse-leave) nil)
+                  (t pressed-p)))
+          (setf (slot-value tex-comp 'texture)
+                (if pressed-p
+                    pressed
+                    (case event-type
+                      (mouse-enter hover)
+                      (mouse-leave normal)
+                      (mouse-stay hover)
+                      (t normal)))))))
+    (funcall callback event-type entity-id local-pos)))
+
+(defun make-toggle-callback (orig-callback normal hover pressed)
+  (let ((state (make-instance 'toggle-state
+                              :callback (or orig-callback (lambda (x y z) (declare (ignore x y z))))
+                              :normal normal
+                              :hover (or hover normal)
+                              :pressed (or pressed hover normal))))
+    (lambda (event-type entity-id local-pos)
+      (do-texture-toggle state event-type entity-id local-pos))))
+
+(define-prototype texture-toggle-button (normal &key callback on-pressed anchor pos hover pressed)
+    ((texture-button normal
+                     :anchor anchor :pos pos
+                     :callback (make-toggle-callback callback normal hover pressed)
+                     :on-pressed on-pressed))
+    ())
