@@ -22,7 +22,7 @@
 (defun texture (filename)
   (alexandria:if-let ((tex (gethash filename *textures*)))
     tex
-    (setf (gethash filename *textures*) (sample (dirt:load-image-to-texture filename)))))
+    (setf (gethash filename *textures*) (sample (dirt:load-image-to-texture filename) :wrap :clamp-to-edge))))
 
 (defun font-properties-bitmask (bold italic underline strike-through)
   (logior
