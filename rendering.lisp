@@ -345,7 +345,9 @@
                                             (float rotation 1f0)
                                             (v2-n:* (v! x y) scale)
                                             z-level)
-                 :model->clip (ui-matrix (v2-n:+ (v2-n:* (v! vx vy) anchor) pos)
+                 :model->clip (ui-matrix (v2-n:+ (v2-n:* (v! (* vx 0.5f0) (* vy 0.5f0))
+                                                         anchor)
+                                                 pos)
                                          (v! vx vy))
                  :sam sam))))))
 
