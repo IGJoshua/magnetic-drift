@@ -156,6 +156,7 @@
         (load-tilemap filepath)
       (tilemap-recalc-positions tilemap-component)
       (add-component tilemap tilemap-component)
+      (setf *tilemap-id* tilemap)
       (eval forms))))
 
 (define-component-system render-tilemap (entity-id alpha)
