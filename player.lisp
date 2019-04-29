@@ -73,32 +73,63 @@
                            (v2:dot (v2:normalize vel)
                                    dir))))))))
 
+(defparameter *tilemap-id* nil)
+
 (define-component-system apply-directional-friction-to-objects (entity-id dt)
-    ((vel velocity-component)
+    ((pos position-component)
+     (vel velocity-component)
      (friction directional-friction-component)
      (rot rotation-component))
     ()
   (with-slots (vel) vel
     (with-slots (rot) rot
-      (with-slots (high-coeff low-coeff) friction
-        (v2-n:-
-         vel
-         (let* ((forward (v! (cos rot)
-                             (sin rot)))
-                (right (- rot (/ pi 2)))
-                (right (v! (cos right)
-                           (sin right)))
-                (forward-speed (v2:dot vel forward))
-                (right-speed (v2:dot vel right))
-                (forward-speed (* forward-speed low-coeff dt))
-                (right-speed (* right-speed
-                                (- high-coeff
-                                   (* (/ high-coeff 1.4)
-                                      (v2:absolute-dot right
-                                                       (v2:normalize vel))))
-                                dt)))
-           (v2-n:+ (v2-n:*s forward forward-speed)
-                   (v2-n:*s right right-speed))))))))
+      (with-slots (pos) pos
+        (with-slots (high-coeff low-coeff) friction
+          (let* ((ground-friction (when *tilemap-id*
+                                    (with-components ((tilemap tilemap-component)
+                                                      (tile-pos position-component))
+                                        *tilemap-id*
+                                      (when (and tilemap tile-pos)
+                                        (with-slots (tile-size tiles) tilemap
+                                          (let* ((tile-pos (slot-value tile-pos 'pos))
+                                                 (idx-vec (v2-n:*s
+                                                           (v2:- pos
+                                                                 tile-pos)
+                                                           (float (/ tile-size)
+                                                                  1f0)))
+                                                 (row (floor (- (y idx-vec))))
+                                                 (col (floor (x idx-vec))))
+                                            (when (and (< row (length tiles))
+                                                       (>= row 0))
+                                              (let ((row (aref tiles row)))
+                                                (when (and (< col (length row))
+                                                           (>= col 0))
+                                                  (gethash (aref row col)
+                                                           (slot-value tilemap 'tile-speeds)))))))))))
+                 (high-coeff (or (when ground-friction
+                                   (* high-coeff ground-friction))
+                                 high-coeff))
+                 (low-coeff (or (when ground-friction
+                                  (* low-coeff ground-friction))
+                                low-coeff)))
+            (v2-n:-
+             vel
+             (let* ((forward (v! (cos rot)
+                                 (sin rot)))
+                    (right (- rot (/ pi 2)))
+                    (right (v! (cos right)
+                               (sin right)))
+                    (forward-speed (v2:dot vel forward))
+                    (right-speed (v2:dot vel right))
+                    (forward-speed (* forward-speed low-coeff dt))
+                    (right-speed (* right-speed
+                                    (- high-coeff
+                                       (* (/ high-coeff 1.4)
+                                          (v2:absolute-dot right
+                                                           (v2:normalize vel))))
+                                    dt)))
+               (v2-n:+ (v2-n:*s forward forward-speed)
+                       (v2-n:*s right right-speed))))))))))
 
 (define-prototype car (&optional pos rot scale) ((transform pos rot scale))
     ((player-input-component)

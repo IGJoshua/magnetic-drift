@@ -29,6 +29,8 @@
 (defclass tilemap-component (component)
   ((tiles :initarg :tiles
           :initform nil)
+   (tile-speeds :initarg :tile-speeds
+                :initform (make-hash-table))
    (textures :initarg :textures
              :initform (make-hash-table))
    (tile-size :initarg :tile-size
@@ -37,13 +39,25 @@
               :initform (make-hash-table))))
 
 (defmethod copy-component ((comp tilemap-component))
-  (let* ((copy (make-instance 'tilemap-component))
-         (copy-hash (slot-value copy 'textures)))
+  (let ((copy (make-instance 'tilemap-component)))
     (setf (slot-value copy 'tiles)
-          nil)
+          (apply #'vector
+                 (loop :for row :across (slot-value comp 'tiles)
+                       :nconc
+                       (apply #'vector
+                              (loop :for col :across row
+                                    :collect col)))))
+    (setf (slot-value copy 'tile-size)
+          (slot-value comp 'tile-size))
     (maphash (lambda (k v)
-               (setf (gethash k copy) v))
-             comp)))
+               (setf (gethash k (slot-value copy 'tiles-speeds)) v))
+             (slot-value comp 'tile-speeds))
+    (maphash (lambda (k v)
+               (setf (gethash k (slot-value copy 'textures)) v))
+             (slot-value comp 'textures))
+    (maphash (lambda (k v)
+               (setf (gethash k (slot-value copy 'positions)) v))
+             (slot-value comp 'positions))))
 
 (defun tilemap-recalc-positions (tilemap)
   (with-slots (positions tiles tile-size textures) tilemap
@@ -107,10 +121,14 @@
                  ("TEXTURES"
                   (unless (string= line
                                    "---TEXTURES")
-                    (let ((char (char line 0))
-                          (tex (subseq line 2)))
-                      (setf (gethash char (slot-value tilemap 'textures))
-                            tex))))
+                    (with-input-from-string (stream (subseq line 2))
+                      (let ((char (char line 0))
+                            (friction (read stream))
+                            (tex (read stream)))
+                        (setf (gethash char (slot-value tilemap 'textures))
+                              tex)
+                        (setf (gethash char (slot-value tilemap 'tile-speeds))
+                              friction)))))
                  ("MAP"
                   (unless (string= line
                                    "---MAP")
@@ -138,6 +156,7 @@
         (load-tilemap filepath)
       (tilemap-recalc-positions tilemap-component)
       (add-component tilemap tilemap-component)
+      (setf *tilemap-id* tilemap)
       (eval forms))))
 
 (define-component-system render-tilemap (entity-id alpha)
