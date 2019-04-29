@@ -7,8 +7,7 @@
 (defvar *camera* nil)
 (defvar *car* nil)
 
-(defparameter *scene-physics-systems* '(global-move-camera
-                                        reset-mouse-over-entity
+(defparameter *scene-physics-systems* '(reset-mouse-over-entity
                                         size-texture-hitbox
                                         size-text-hitbox
                                         check-mouse-ui-hitbox
@@ -17,6 +16,7 @@
                                         update-car-velocity
                                         update-car-angular-velocity
                                         move-objects-with-velocity
+                                        move-player-camera
                                         rotate-objects-with-angular-velocity
                                         apply-directional-friction-to-objects
                                         apply-uniform-friction-to-objects
