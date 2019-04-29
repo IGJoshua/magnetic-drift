@@ -7,15 +7,17 @@
     (with-components ((car-pos position-component)
                       (car-vel velocity-component))
         *car*
-      (with-components ((cam-pos position-component))
-          *camera*
-        (setf (slot-value cam-pos 'pos)
-              (v2:lerp (slot-value cam-pos 'pos)
-                       (v2-n:+ (v2:*s (slot-value car-vel 'vel)
-                                      (* dt 32f0))
-                               (slot-value car-pos 'pos))
-                       (* dt dt
-                          (v2:length (slot-value car-vel 'vel)))))))))
+      (when (and car-pos car-vel)
+        (with-components ((cam-pos position-component))
+            *camera*
+          (when cam-pos
+            (setf (slot-value cam-pos 'pos)
+                  (v2:lerp (slot-value cam-pos 'pos)
+                           (v2-n:+ (v2:*s (slot-value car-vel 'vel)
+                                          (* dt 32f0))
+                                   (slot-value car-pos 'pos))
+                           (* dt dt
+                              (v2:length (slot-value car-vel 'vel)))))))))))
 
 (defclass player-input-component (component)
   ((accell :initarg :accell
