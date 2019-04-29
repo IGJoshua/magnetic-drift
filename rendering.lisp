@@ -111,8 +111,8 @@
       0 0 0 1))
 
 (defun ui-matrix (pos scale)
-  (m! (/ (x scale)) 0 0 (/ (+ (x pos)) (x scale))
-      0 (/ (y scale)) 0 (/ (+ (y pos)) (y scale))
+  (m! (/ (x scale)) 0 0 (/ (x pos) (x scale) 0.5f0)
+      0 (/ (y scale)) 0 (/ (y pos) (y scale) 0.5f0)
       0 0 1 0
       0 0 0 1))
 
