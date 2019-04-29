@@ -1,6 +1,6 @@
 ---TEXTURES
-# ./res/land_dirt05.png
-+ ./res/Tiles/Asphalt road/road_asphalt01.png
+# 3.0f0 "./res/land_dirt05.png"
++ 1.0f0 "./res/Tiles/Asphalt road/road_asphalt01.png"
 ---MAP
 #####
 #+++#
