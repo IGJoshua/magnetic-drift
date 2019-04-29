@@ -166,7 +166,6 @@
            (let ((tex-name (gethash k (slot-value tilemap 'textures))))
              (when tex-name
                (let ((sam (texture tex-name)))
-                 (print (list (second v) (buffer-stream-length (first v))))
                  (with-instances (second v)
                    (map-g #'instanced-quad (first v)
                           :quad->model quad->model

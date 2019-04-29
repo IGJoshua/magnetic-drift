@@ -120,3 +120,46 @@
                         :scale (v! 0.125
                                    0.125))
      (collider-component :radius 7)))
+
+(defun line-circle-classify (line-pos line-angle line-length
+                             circle-pos circle-radius)
+  (let* ((line-dir (v! (cos line-angle)
+                       (sin line-angle)))
+         (closest-point-dist (max 0f0
+                                  (min (v2:dot line-dir
+                                               (v2:- circle-pos
+                                                     line-pos))
+                                       line-length)))
+         (closest-point (v2-n:+ (v2:*s line-dir
+                                       (float closest-point-dist
+                                              1f0))
+                                line-pos))
+         (circle->closest-point (v2:- closest-point
+                                      circle-pos))
+         (penetration-depth (- circle-radius (v2:length circle->closest-point))))
+    (when (> penetration-depth 0)
+      (values (v2-n:normalize (v2-n:negate circle->closest-point))
+              penetration-depth))))
+
+(defclass line-trigger-component (component)
+  ((length :initarg :length
+           :initform 32)))
+
+(define-component-system check-line-overlap (entity-id dt)
+    ((line-pos position-component)
+     (line-rot rotation-component)
+     (line line-trigger-component))
+    ()
+  (loop :for collidable :in *mobile-collidable-entities*
+        :do (with-components ((circle-pos position-component)
+                              (circle-col collider-component))
+                collidable
+              (when (and circle-pos circle-col)
+                (multiple-value-bind (normal depth)
+                    (line-circle-classify (slot-value line-pos 'pos)
+                                          (slot-value line-rot 'rot)
+                                          (slot-value line 'length)
+                                          (slot-value circle-pos 'pos)
+                                          (slot-value circle-col 'radius))
+                  (when (and normal depth)
+                    (publish-event 'trigger-hit (list collidable entity-id normal depth))))))))
