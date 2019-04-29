@@ -25,4 +25,5 @@
                (:file "tilemap")
                (:file "physics")
                (:file "player")
+               (:file "gameplay")
                (:file "magnetic-drift")))

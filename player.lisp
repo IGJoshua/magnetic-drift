@@ -146,4 +146,5 @@
                         :rotation (- (/ pi 2))
                         :scale (v! 0.125f0
                                    0.125f0)
-                        :z-level 1)))
+                        :z-level 1)
+     (lap-counter-component)))
