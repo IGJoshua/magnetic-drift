@@ -159,8 +159,10 @@
                     (let ((line-pos (v2-n:+ (v2-n:negate
                                              (v2-n:*s (v! (cos (slot-value line-rot 'rot))
                                                           (sin (slot-value line-rot 'rot)))
-                                                      (/ (slot-value line 'length)
-                                                         2)))
+                                                      (float
+                                                       (/ (slot-value line 'length)
+                                                          2)
+                                                       1f0)))
                                             (slot-value line-pos 'pos))))
                       (line-circle-classify line-pos
                                             (slot-value line-rot 'rot)
