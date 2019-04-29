@@ -180,16 +180,17 @@
                                        (let ((scale (/ (zoom camera-comp))))
                                          (v! scale scale))))
              (view->projection (ortho-projection)))
-        (maphash
-         (lambda (k v)
-           (let ((tex-name (gethash k (slot-value tilemap 'textures))))
-             (when tex-name
-               (let ((sam (texture tex-name)))
-                 (with-instances (second v)
-                   (map-g #'instanced-quad (first v)
-                          :quad->model quad->model
-                          :model->world model->world
-                          :world->view world->view
-                          :view->projection view->projection
-                          :sam sam))))))
-         (slot-value tilemap 'positions))))))
+        (with-blending *blending-params*
+          (maphash
+           (lambda (k v)
+             (let ((tex-name (gethash k (slot-value tilemap 'textures))))
+               (when tex-name
+                 (let ((sam (texture tex-name)))
+                   (with-instances (second v)
+                     (map-g #'instanced-quad (first v)
+                            :quad->model quad->model
+                            :model->world model->world
+                            :world->view world->view
+                            :view->projection view->projection
+                            :sam sam))))))
+           (slot-value tilemap 'positions)))))))
