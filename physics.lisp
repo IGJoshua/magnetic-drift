@@ -156,10 +156,16 @@
                 collidable
               (when (and circle-pos circle-col)
                 (multiple-value-bind (normal depth)
-                    (line-circle-classify (slot-value line-pos 'pos)
-                                          (slot-value line-rot 'rot)
-                                          (slot-value line 'length)
-                                          (slot-value circle-pos 'pos)
-                                          (slot-value circle-col 'radius))
+                    (let ((line-pos (v2-n:+ (v2-n:negate
+                                             (v2-n:*s (v! (cos (slot-value line-rot 'rot))
+                                                          (sin (slot-value line-rot 'rot)))
+                                                      (/ (slot-value line 'length)
+                                                         2)))
+                                            (slot-value line-pos 'pos))))
+                      (line-circle-classify line-pos
+                                            (slot-value line-rot 'rot)
+                                            (slot-value line 'length)
+                                            (slot-value circle-pos 'pos)
+                                            (slot-value circle-col 'radius)))
                   (when (and normal depth)
                     (publish-event 'trigger-hit (list collidable entity-id normal depth))))))))
