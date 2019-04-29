@@ -30,8 +30,8 @@
   (step-host)
   (update-repl-link)
   (handle-input)
-  (loop :for system :in *scene-physics-systems*
-        :with frame-dt := (* dt *physics-rate*)
+  (loop :with frame-dt := (* dt *physics-rate*)
+        :for system :in *scene-physics-systems*
         :do (run-system system frame-dt))
   (process-events))
 
