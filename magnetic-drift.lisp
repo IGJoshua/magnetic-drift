@@ -7,6 +7,7 @@
 (defvar *camera* nil)
 (defvar *car* nil)
 
+(defvar *physics-rate* 1f0)
 (defparameter *scene-physics-systems* '(update-lap-counter
                                         reset-mouse-over-entity
                                         size-texture-hitbox
@@ -30,7 +31,8 @@
   (update-repl-link)
   (handle-input)
   (loop :for system :in *scene-physics-systems*
-        :do (run-system system dt))
+        :with frame-dt := (* dt *physics-rate*)
+        :do (run-system system frame-dt))
   (process-events))
 
 (defun spawn-default-entities ()
