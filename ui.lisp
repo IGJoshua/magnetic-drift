@@ -123,3 +123,51 @@
   (multiple-value-bind (width height)
       (sdl2-ttf:size-text (ttf-font-from-text-comp text-comp) (slot-value text-comp 'text))
     (setf (slot-value hitbox-comp 'size) (v2! width height))))
+
+(define-prototype texture-button (texture &key callback anchor pos) ()
+    ((ui-position-component :anchor (or anchor (v2! 0 0)) :pos (or pos (v2! 0 0)))
+     (ui-hitbox-component)
+     (mouse-trigger-component :callback (or callback (lambda (x y z) (declare (ignore x y z)))))
+     (texture-component :texture texture)))
+
+(defclass toggle-state ()
+  ((callback :initarg :callback)
+   (normal :initarg :normal)
+   (hover :initarg :hover)
+   (pressed :initarg :pressed)
+   (pressed-p :initform nil)))
+
+(defun do-texture-toggle (toggle-state event-type entity-id local-pos)
+  (with-slots (callback normal hover pressed pressed-p) toggle-state
+    (with-components ((tex-comp texture-component)) entity-id
+      (when tex-comp
+        (with-slots (texture) tex-comp
+          (setf pressed-p
+                (case event-type
+                  ((mouse-click) t)
+                  ((mouse-release mouse-leave) nil)
+                  (t pressed-p)))
+          (setf (slot-value tex-comp 'texture)
+                (if pressed-p
+                    pressed
+                    (case event-type
+                      (mouse-enter hover)
+                      (mouse-leave normal)
+                      (mouse-stay hover)
+                      (t normal)))))))
+    (funcall callback event-type entity-id local-pos)))
+
+(defun make-toggle-callback (orig-callback normal hover pressed)
+  (let ((state (make-instance 'toggle-state
+                              :callback (or orig-callback (lambda (x y z) (declare (ignore x y z))))
+                              :normal normal
+                              :hover (or hover normal)
+                              :pressed (or pressed hover normal))))
+    (lambda (event-type entity-id local-pos)
+      (do-texture-toggle state event-type entity-id local-pos))))
+
+(define-prototype texture-toggle-button (normal &key callback anchor pos hover pressed)
+    ((texture-button normal
+                     :anchor anchor :pos pos
+                     :callback (make-toggle-callback callback normal hover pressed)))
+    ())
