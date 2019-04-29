@@ -392,3 +392,6 @@
                      (render-ui-texture-impl sam offset rotation scale 0 pos anchor)))
               (cepl:free sam)
               (cepl:free tex))))))))
+
+(define-prototype ui-text (&key anchor pos rot scale text font) ((ui-transform anchor pos rot scale))
+    ((text-component :font (or font "./res/kenney-fonts/Kenney Future.ttf") :text (or text ""))))

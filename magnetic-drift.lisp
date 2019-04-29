@@ -7,7 +7,8 @@
 (defvar *camera* nil)
 (defvar *car* nil)
 
-(defparameter *scene-physics-systems* '(reset-mouse-over-entity
+(defparameter *scene-physics-systems* '(update-lap-counter
+                                        reset-mouse-over-entity
                                         size-texture-hitbox
                                         size-text-hitbox
                                         check-mouse-ui-hitbox
@@ -21,6 +22,7 @@
                                         apply-directional-friction-to-objects
                                         apply-uniform-friction-to-objects
                                         mark-entities-for-collision
+                                        check-line-overlap
                                         check-collisions))
 
 (defun update (dt)

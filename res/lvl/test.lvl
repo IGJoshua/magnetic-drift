@@ -22,3 +22,12 @@
 (instantiate-prototype 'camera)
 (instantiate-prototype 'car (v! 200 0) (/ pi 2f0))
 (instantiate-prototype 'tire)
+(instantiate-prototype 'checkpoint :index 0 :pos (v! 520 -140) :length 200 :rot (/ pi 4))
+(instantiate-prototype 'checkpoint :index 1 :pos (v! 520 -380) :length 200 :rot (/ pi -4))
+(instantiate-prototype 'checkpoint :index 2 :pos (v! 120 -380) :length 200 :rot (/ pi 4))
+(instantiate-prototype 'checkpoint :index 3 :pos (v! 120 -140) :length 200 :rot (/ pi -4) :finish-line-p t)
+
+(instantiate-prototype 'ui-text :text "Lap:" :anchor (v2! 0.90 0.90) :pos (v2! -100 0))
+(setf *lap-counter-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 0)))
+(instantiate-prototype 'ui-text :text "Checkpoint" :anchor (v2! 0.90 0.90) :pos (v2! -100 -20))
+(setf *checkpoint-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 -20)))
