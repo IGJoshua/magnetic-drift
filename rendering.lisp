@@ -316,7 +316,7 @@
         (text (slot-value text-comp 'text)))
     (unless (text-size-zero-p font text)
       (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
-             (sam (sample tex)))
+             (sam (sample tex :wrap :clamp-to-edge)))
         (unwind-protect
              (with-slots (offset rotation scale z-level) text-comp
                (render-texture-impl sam offset rotation scale z-level pos-comp rot-comp scale-comp))
@@ -381,7 +381,7 @@
             (text (slot-value text-comp 'text)))
         (unless (text-size-zero-p font text)
           (let* ((tex (text-to-tex text font (slot-value text-comp 'color)))
-                 (sam (sample tex)))
+                 (sam (sample tex :wrap :clamp-to-edge)))
             (unwind-protect
                  (with-slots (offset rotation scale) text-comp
                    (with-slots (pos anchor) pos-comp
@@ -389,5 +389,13 @@
               (cepl:free sam)
               (cepl:free tex))))))))
 
-(define-prototype ui-text (&key anchor pos rot scale text font) ((ui-transform anchor pos rot scale))
-    ((text-component :font (or font "./res/kenney-fonts/Kenney Future.ttf") :text (or text ""))))
+(define-prototype ui-text (&key anchor pos rot scale text font color point-size bold italic underline strike-through) ((ui-transform anchor pos rot scale))
+    ((text-component
+      :font (or font "./res/kenney-fonts/Kenney Future.ttf")
+      :text (or text "")
+      :color (or color (v! 255 255 255 0))
+      :point-size (or point-size 12)
+      :bold bold
+      :italic italic
+      :underline underline
+      :strike-through strike-through)))

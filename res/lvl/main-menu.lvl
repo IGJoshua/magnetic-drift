@@ -169,3 +169,11 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
                        :pressed "./res/main-menu/quit-press.png"
                        :anchor (v2! -0.33 0)
                        :pos (v2! 0 -80))
+
+(instantiate-prototype 'ui-text :text "Controls:" :point-size 24 :bold t :anchor (v! 0.2 0.3))
+(instantiate-prototype 'ui-text :text "W/D:" :bold t :anchor (v! 0.2 0.3) :pos (v2! -20 -30))
+(instantiate-prototype 'ui-text :text "Steering" :bold nil :anchor (v! 0.2 0.3) :pos (v2! 55 -30))
+(instantiate-prototype 'ui-text :text "A/S:" :bold t :anchor (v! 0.2 0.3) :pos (v2! -20 -50))
+(instantiate-prototype 'ui-text :text "Acceleration" :bold nil :anchor (v! 0.2 0.3) :pos (v2! 75 -50))
+(instantiate-prototype 'ui-text :text "Shift:" :bold t :anchor (v! 0.2 0.3) :pos (v2! -20 -70))
+(instantiate-prototype 'ui-text :text "Power Brake" :bold nil :anchor (v! 0.2 0.3) :pos (v2! 70 -70))
