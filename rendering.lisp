@@ -138,9 +138,9 @@
     (setf *blending-params* (make-blending-params)))
   (cepl.sdl2-ttf:init-cepl-sdl2-ttf))
 
-(defun render (alpha)
+(defun render (alpha dt)
   (loop :for system :in *scene-render-systems*
-        :do (run-system system alpha)))
+        :do (run-system system alpha dt)))
 
 (defclass texture-component (component)
   ((texture :initarg :texture
@@ -164,29 +164,25 @@
                             (y (slot-value comp 'scale)))
                  :z-level (slot-value comp 'z-level)))
 
-(define-global-system clear-fbo (alpha)
-  (declare (ignore alpha))
+(define-global-system clear-fbo (alpha dt)
   (clear-fbo (fbo-bound (cepl-context))))
 
 
-(define-global-system clear-depth (alpha)
-  (declare (ignore alpha))
+(define-global-system clear-depth (alpha dt)
   (let ((fbo (fbo-bound (cepl-context))))
     (with-fbo-bound (fbo :target :draw-framebuffer
                          :with-blending nil
                          :with-viewport nil)
       (gl:clear :depth-buffer))))
 
-(define-global-system resize-viewport (alpha)
-  (declare (ignore alpha))
+(define-global-system resize-viewport (alpha dt)
   (setf (cepl:viewport-resolution (current-viewport))
         (surface-resolution (current-surface (cepl-context)))))
 
-(define-global-system swap (alpha)
-  (declare (ignore alpha))
+(define-global-system swap (alpha dt)
   (swap))
 
-(define-component-system select-camera (entity-id alpha)
+(define-component-system select-camera (entity-id alpha dt)
     (position-component (camera-comp camera-component))
     ()
   (when (active-p camera-comp)
@@ -222,7 +218,7 @@
                    :sam sam)))))))
 
 
-(define-component-system render-textured (entity-id alpha)
+(define-component-system render-textured (entity-id alpha dt)
     ((tex-comp texture-component)
      (pos-comp position-component)
      &optional
@@ -309,7 +305,7 @@
       (sdl2:free-surface texture-surface)
       (autowrap:autocollect-cancel texture-surface))))
 
-(define-component-system render-normal-text (entity-id alpha)
+(define-component-system render-normal-text (entity-id alpha dt)
     ((text-comp text-component)
      (pos-comp position-component)
      &optional
@@ -361,7 +357,7 @@
                                          (v! vx vy))
                  :sam sam))))))
 
-(define-component-system render-ui-texture (entity-id alpha)
+(define-component-system render-ui-texture (entity-id alpha dt)
     ((tex-comp texture-component)
      (pos-comp ui-position-component))
     (camera-component)
@@ -373,7 +369,7 @@
         (with-slots (pos anchor) pos-comp
           (render-ui-texture-impl (texture texture) offset rotation scale 0 pos anchor))))))
 
-(define-component-system render-ui-text (entity-id alpha)
+(define-component-system render-ui-text (entity-id alpha dt)
     ((text-comp text-component)
      (pos-comp ui-position-component))
     (camera-component)

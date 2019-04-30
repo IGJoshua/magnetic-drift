@@ -32,7 +32,7 @@
   (handle-input)
   (loop :with frame-dt := (* dt *physics-rate*)
         :for system :in *scene-physics-systems*
-        :do (run-system system frame-dt))
+        :do (run-system system frame-dt dt))
   (process-events))
 
 (defun spawn-default-entities ()
@@ -86,7 +86,7 @@
                         (setf last-frame-seconds next-frame-seconds
                               next-frame-seconds (+ next-frame-seconds seconds-per-frame))
                      :finally
-                        (render (* (- current-time last-frame-seconds) fps)))))))
+                        (render (* (- current-time last-frame-seconds) fps) 0))))))
 
 (defun stop-loop ()
   (setf *running* nil))

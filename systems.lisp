@@ -17,18 +17,18 @@
 (defclass global-system (system)
   ())
 
-(defgeneric %run-system (system dt))
-(defun run-system (system-sym dt)
-  (%run-system (gethash system-sym *systems*) dt))
+(defgeneric %run-system (system dt real-dt))
+(defun run-system (system-sym dt real-dt)
+  (%run-system (gethash system-sym *systems*) dt real-dt))
 
-(defmethod %run-system ((system component-system) dt)
+(defmethod %run-system ((system component-system) dt real-dt)
   (loop :for entity :in (cepl-utils:hash-keys *entities*)
-        :do (funcall (system-fun system) entity dt)))
+        :do (funcall (system-fun system) entity dt real-dt)))
 
-(defmethod %run-system ((system global-system) dt)
-  (funcall (system-fun system) dt))
+(defmethod %run-system ((system global-system) dt real-dt)
+  (funcall (system-fun system) dt real-dt))
 
-(defmacro define-component-system (name (entity-id dt)
+(defmacro define-component-system (name (entity-id dt real-dt)
                                    (&rest required-or-opt-components)
                                    (&rest exclude-components)
                                    &body body)
@@ -49,8 +49,8 @@
                   `(,(gensym) (gethash ',binding ,components-sym))))))
         `(setf (gethash ',name *systems*)
                (make-instance 'component-system
-                              :system-fun (lambda (,entity-id ,dt)
-                                            (declare (ignorable ,dt))
+                              :system-fun (lambda (,entity-id ,dt ,real-dt)
+                                            (declare (ignorable ,dt ,real-dt))
                                             (alexandria:when-let* ((,entity-sym (gethash ,entity-id *entities*))
                                                                    (,components-sym (slot-value ,entity-sym 'components)))
                                               (block ,name
@@ -66,11 +66,12 @@
                               :required-components ',required-components
                               :exclude-components ',exclude-components))))))
 
-(defmacro define-global-system (name lambda-list
+(defmacro define-global-system (name (dt real-dt)
                                 &body body)
   `(setf (gethash ',name *systems*)
          (make-instance 'global-system
-                        :system-fun (lambda ,lambda-list
+                        :system-fun (lambda (,dt ,real-dt)
+                                      (declare (ignorable ,dt ,real-dt))
                                       ,@body))))
 
 (defun components-match-p (system entity-id)

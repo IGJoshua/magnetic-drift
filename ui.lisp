@@ -13,12 +13,11 @@
 (defvar *mouse-over-entity* nil)
 (defvar *mouse-over-local-pos* nil)
 
-(define-global-system reset-mouse-over-entity (dt)
-  (declare (ignore dt))
+(define-global-system reset-mouse-over-entity (dt real-dt)
   (setf *mouse-over-entity* nil
         *mouse-over-local-pos* nil))
 
-(define-component-system check-mouse-ui-hitbox (entity-id alpha)
+(define-component-system check-mouse-ui-hitbox (entity-id dt real-dt)
     ((ui-pos ui-position-component)
      (ui-hitbox ui-hitbox-component)
      &optional
@@ -46,8 +45,7 @@
 (defvar *prev-mouse-over-entity* nil)
 (defvar *prev-mouse-over-local-pos* nil)
 
-(define-global-system check-mouse-over-entity (alpha)
-  (declare (ignore alpha))
+(define-global-system check-mouse-over-entity (dt real-dt)
   (cond
     ((and *prev-mouse-over-entity* *mouse-over-entity*
           (= *prev-mouse-over-entity* *mouse-over-entity*))
@@ -72,8 +70,7 @@
 (defvar *mouse-down* nil
   "True if the mouse left click was down last we checked.")
 
-(define-global-system check-mouse-state (alpha)
-  (declare (ignore alpha))
+(define-global-system check-mouse-state (dt real-dt)
   ;; Check for mouse click or release
   (let ((mouse-down-p (skitter:mouse-down-p 1)))
     (cond
@@ -107,7 +104,7 @@
         (when trigger
           (funcall (slot-value trigger 'callback) event-type entity-id local-pos))))))
 
-(define-component-system size-texture-hitbox (entity-id alpha)
+(define-component-system size-texture-hitbox (entity-id dt real-dt)
     ((tex-comp texture-component)
      (hitbox-comp ui-hitbox-component))
     ()
@@ -116,7 +113,7 @@
     (destructuring-bind (width height) (texture-base-dimensions tex)
       (setf (slot-value hitbox-comp 'size) (v2! width height)))))
 
-(define-component-system size-text-hitbox (entity-id alpha)
+(define-component-system size-text-hitbox (entity-id dt real-dt)
     ((text-comp text-component)
      (hitbox-comp ui-hitbox-component))
     ()
