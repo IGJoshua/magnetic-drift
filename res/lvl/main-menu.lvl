@@ -158,17 +158,15 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
                          (declare (ignore id pos))
                          (load-scene "./res/lvl/square.lvl")))
 
-(instantiate-prototype 'texture-toggle-button "./res/main-menu/help.png"
-                       :hover "./res/main-menu/help-hover.png"
-                       :pressed "./res/main-menu/help-press.png"
-                       :anchor (v2! -0.33 0)
-                       :pos (v2! 0 -40))
-
 (instantiate-prototype 'texture-toggle-button "./res/main-menu/quit.png"
                        :hover "./res/main-menu/quit-hover.png"
                        :pressed "./res/main-menu/quit-press.png"
                        :anchor (v2! -0.33 0)
-                       :pos (v2! 0 -80))
+                       :pos (v2! 0 -80)
+                       :on-pressed
+                       (lambda (id pos)
+                         (declare (ignore id pos))
+                         (sb-ext:exit)))
 
 (instantiate-prototype 'ui-text :text "Controls:" :point-size 24 :bold t :anchor (v! 0.2 0.3))
 (instantiate-prototype 'ui-text :text "W/D:" :bold t :anchor (v! 0.2 0.3) :pos (v2! -20 -30))
