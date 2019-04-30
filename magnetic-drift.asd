@@ -26,4 +26,5 @@
                (:file "physics")
                (:file "player")
                (:file "gameplay")
+               (:file "pause-menu")
                (:file "magnetic-drift")))

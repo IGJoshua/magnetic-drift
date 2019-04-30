@@ -15,6 +15,9 @@
                                         check-mouse-ui-hitbox
                                         check-mouse-over-entity
                                         check-mouse-state
+                                        spawn-pause-menu
+                                        tick-down-wait-component
+                                        move-time-to-text
                                         update-car-velocity
                                         update-car-angular-velocity
                                         move-objects-with-velocity

@@ -160,3 +160,6 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
 (setf *checkpoint-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 -20)))
 (setf *laps-in-level* 5)
 (setf *next-level* "./res/lvl/main-menu.lvl")
+
+(instantiate-prototype 'resume-clock 5)
+(instantiate-prototype 'pause-menu-spawner)
