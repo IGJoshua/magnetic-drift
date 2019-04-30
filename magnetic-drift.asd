@@ -8,6 +8,7 @@
   :serial t
   :depends-on (#:alexandria
                #:cepl.sdl2
+               #:slynk ; Hacky workaround for livesupport issues
                #:skitter #:cepl.skitter.sdl2
                #:sdl2-ttf #:cepl.sdl2-ttf
                #:nineveh #:dirt
