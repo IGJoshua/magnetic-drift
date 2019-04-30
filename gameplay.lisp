@@ -70,3 +70,26 @@
       *checkpoint-text*
     (when text-comp
       (setf (slot-value text-comp 'text) (format nil "~A" (slot-value lap-counter 'next-checkpoint))))))
+
+(defvar *laps-in-level* nil)
+
+(define-event-handler check-level-completed (event) lap-completed
+  (destructuring-bind (entity checkpoint) event
+    (declare (ignore checkpoint))
+    (with-components ((lap-counter lap-counter-component)
+                      (player-input player-input-component))
+        entity
+      (when (and player-input
+                 lap-counter
+                 *laps-in-level*
+                 (>= (slot-value lap-counter 'lap-count) *laps-in-level*))
+        (publish-event 'level-complete entity)))))
+
+(defvar *next-level* nil)
+
+(define-event-handler load-level-on-completed (event) level-complete
+  (declare (ignore event))
+  (when *next-level*
+    (let ((lvl *next-level*))
+      (setf *next-level* nil)
+      (load-scene lvl))))
