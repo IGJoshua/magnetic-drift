@@ -159,7 +159,7 @@
       (setf *tilemap-id* tilemap)
       (eval forms))))
 
-(define-component-system render-tilemap (entity-id alpha)
+(define-component-system render-tilemap (entity-id alpha dt)
     ((tilemap tilemap-component)
      (pos position-component))
     ()

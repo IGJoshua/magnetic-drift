@@ -59,7 +59,7 @@
 (defvar *lap-counter-text* nil)
 (defvar *checkpoint-text* nil)
 
-(define-component-system update-lap-counter (entity-id dt)
+(define-component-system update-lap-counter (entity-id dt real-dt)
     ((lap-counter lap-counter-component))
     ()
   (with-components ((text-comp text-component))

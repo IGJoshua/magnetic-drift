@@ -18,7 +18,7 @@
   ((radius :initarg :radius
            :initform 200)))
 
-(define-component-system move-objects-with-velocity (entity-id dt)
+(define-component-system move-objects-with-velocity (entity-id dt real-dt)
     ((move velocity-component)
      (pos position-component))
     ()
@@ -26,7 +26,7 @@
           (v2:*s (slot-value move 'vel)
                  dt)))
 
-(define-component-system rotate-objects-with-angular-velocity (entity-id dt)
+(define-component-system rotate-objects-with-angular-velocity (entity-id dt real-dt)
     ((ang angular-velocity-component)
      (rot rotation-component))
     ()
@@ -34,7 +34,7 @@
         (* (slot-value ang 'ang-vel)
            dt)))
 
-(define-component-system apply-uniform-friction-to-objects (entity-id dt)
+(define-component-system apply-uniform-friction-to-objects (entity-id dt real-dt)
     ((move velocity-component)
      (friction uniform-friction-component))
     ()
@@ -44,7 +44,7 @@
 (defvar *collidable-entities* nil)
 (defvar *mobile-collidable-entities* nil)
 
-(define-component-system mark-entities-for-collision (entity-id dt)
+(define-component-system mark-entities-for-collision (entity-id dt real-dt)
     (collider-component position-component
      &optional
      (velocity-component velocity-component))
@@ -66,8 +66,7 @@
                          (slot-value b-collider 'radius)))
           t)))))
 
-(define-global-system check-collisions (dt)
-  (declare (ignore dt))
+(define-global-system check-collisions (dt real-dt)
   (loop :for entity-id :in *mobile-collidable-entities*
         :do (loop :for entity-other :in *collidable-entities*
                   :when (not (eql entity-id entity-other))
@@ -145,7 +144,7 @@
   ((length :initarg :length
            :initform 32)))
 
-(define-component-system check-line-overlap (entity-id dt)
+(define-component-system check-line-overlap (entity-id dt real-dt)
     ((line-pos position-component)
      (line-rot rotation-component)
      (line line-trigger-component))

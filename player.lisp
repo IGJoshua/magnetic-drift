@@ -2,7 +2,7 @@
 
 (in-package #:magnetic-drift)
 
-(define-global-system move-player-camera (dt)
+(define-global-system move-player-camera (dt real-dt)
   (when (and *camera* *car*)
     (with-components ((car-pos position-component)
                       (car-vel velocity-component))
@@ -35,7 +35,7 @@
    (high-coeff :initarg :high-coeff
                :initform 0.5)))
 
-(define-component-system update-car-velocity (entity-id dt)
+(define-component-system update-car-velocity (entity-id dt real-dt)
     ((move velocity-component)
      (rot rotation-component)
      (input-comp player-input-component))
@@ -63,7 +63,7 @@
           (v2-n:+ vel
                   to-add))))))
 
-(define-component-system update-car-angular-velocity (entity-id dt)
+(define-component-system update-car-angular-velocity (entity-id dt real-dt)
     ((ang-vel angular-velocity-component)
      (input player-input-component)
      (vel velocity-component)
@@ -81,7 +81,7 @@
                            (v2:dot (v2:normalize vel)
                                    dir))))))))
 
-(define-component-system apply-directional-friction-to-objects (entity-id dt)
+(define-component-system apply-directional-friction-to-objects (entity-id dt real-dt)
     ((pos position-component)
      (vel velocity-component)
      (friction directional-friction-component)
