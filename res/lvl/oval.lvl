@@ -35,7 +35,7 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
 @ 1.0 "./res/Tiles/Sand road/road_sand90.png"
 ! 1.0 "./res/Tiles/Sand road/road_sand05.png"
 ~ 1.0 "./res/Tiles/Sand road/road_sand04.png"
-` 1.0 "./res/Tiles/Grass/land_grass11.png"
+` 7.0 "./res/Tiles/Grass/land_grass11.png"
 ---MAP
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 ````````````````````````````````````````````````````````````````````````````````````````````````````
