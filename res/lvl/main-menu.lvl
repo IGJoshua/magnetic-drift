@@ -156,7 +156,7 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
                        :on-pressed
                        (lambda (id pos)
                          (declare (ignore id pos))
-                         (load-scene "./res/lvl/test.lvl")))
+                         (load-scene "./res/lvl/square.lvl")))
 
 (instantiate-prototype 'texture-toggle-button "./res/main-menu/help.png"
                        :hover "./res/main-menu/help-hover.png"
