@@ -1,7 +1,10 @@
 @set quickload=(ql:quickload :magnetic-drift)
 @set dump=^
 (sb-ext:save-lisp-and-die \"magnetic-drift.exe\"^
-  :toplevel (lambda () (cepl:repl) (magnetic-drift::run-loop))^
+  :toplevel (lambda ()^
+    (cepl:repl)^
+    (in-package :magnetic-drift)^
+    (magnetic-drift::run-loop))^
   :executable t^
   :application-type :gui^
   :compression 9)
