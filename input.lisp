@@ -10,6 +10,8 @@
    (cam-dir :accessor cam-dir
             :initform (v! 0 0))
    (brake :accessor brake
+          :initform nil)
+   (pause :accessor pause
           :initform nil)))
 
 (defun handle-input ()
@@ -31,7 +33,8 @@
     (setf (x (cam-dir *input*)) x
           (y (cam-dir *input*)) y)
     (v2-n:normalize (cam-dir *input*)))
-  (setf (brake *input*) (cepl.skitter:key-down-p cepl.skitter:key.lshift)))
+  (setf (brake *input*) (cepl.skitter:key-down-p cepl.skitter:key.lshift))
+  (setf (pause *input*) (cepl.skitter:key-down-p cepl.skitter:key.escape)))
 
 (defun init-input ()
   (unless *input*

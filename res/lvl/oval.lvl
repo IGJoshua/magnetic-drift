@@ -142,3 +142,6 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
   (setf (slot-value (get-component cam 'position-component) 'pos) (v! 1500 -1500)))
 (instantiate-prototype 'car (v! 1500 -1500) (/ pi 2f0))
 (instantiate-prototype 'tire)
+
+(instantiate-prototype 'resume-clock 5)
+(instantiate-prototype 'pause-menu-spawner)

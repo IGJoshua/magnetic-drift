@@ -31,3 +31,6 @@
 (setf *lap-counter-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 0)))
 (instantiate-prototype 'ui-text :text "Checkpoint" :anchor (v2! 0.90 0.90) :pos (v2! -100 -20))
 (setf *checkpoint-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 -20)))
+
+(instantiate-prototype 'resume-clock 5)
+(instantiate-prototype 'pause-menu-spawner)
