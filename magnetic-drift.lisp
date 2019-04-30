@@ -61,11 +61,11 @@
 
 (defun init ()
   (init-entities)
-  (when (zerop (length (cepl-utils:hash-keys *entities*)))
-    (spawn-default-entities))
   (init-systems)
   (init-renderer)
-  (init-input))
+  (init-input)
+  (when (zerop (length (cepl-utils:hash-keys *entities*)))
+    (load-scene "./res/lvl/main-menu.lvl")))
 
 (defun send-repl ()
   (alexandria:when-let* ((slynk-mrepl (find-package :slynk-mrepl))
