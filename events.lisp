@@ -26,7 +26,9 @@
   *frame-events*)
 
 (defun process-events ()
-  (loop :for (event-name . event) :in *frame-events*
+  (loop :for pair := *frame-events* :then (cdr pair)
+        :while pair
+        :for ((event-name . event)) := pair
         :when (gethash event-name *event-handlers*)
         :do (maphash (lambda (handler-name handler-fun)
                        (declare (ignore handler-name))

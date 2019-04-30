@@ -139,6 +139,19 @@ $ 1.0 "./res/Tiles/Sand road/road_sand07.png"
 ````````````````````````````````````````````````````````````````````````````````````````````````````
 ---OBJECTS
 (let ((cam (instantiate-prototype 'camera)))
-  (setf (slot-value (get-component cam 'position-component) 'pos) (v! 1500 -1500)))
-(instantiate-prototype 'car (v! 1500 -1500) (/ pi 2f0))
-(instantiate-prototype 'tire)
+  (setf (slot-value (get-component cam 'position-component) 'pos) (v! 1260 -1640)))
+(instantiate-prototype 'car (v! 1260 -1640) (/ pi 2f0))
+
+(instantiate-prototype 'checkpoint :index 0 :pos (v! 1260 -1100) :length 200 :rot 0)
+(instantiate-prototype 'checkpoint :index 1 :pos (v! 1940 -1140)  :length 200 :rot (/ pi -4))
+(instantiate-prototype 'checkpoint :index 2 :pos (v! 1940 -2100) :length 200 :rot (/ pi -4))
+(instantiate-prototype 'checkpoint :index 3 :pos (v! 1260 -2100) :length 200 :rot (/ pi 4))
+(instantiate-prototype 'checkpoint :index 4 :pos (v! 1260 -1640) :length 200 :rot 0 :finish-line-p t)
+
+
+(instantiate-prototype 'ui-text :text "Lap:" :anchor (v2! 0.90 0.90) :pos (v2! -100 0))
+(setf *lap-counter-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 0)))
+(instantiate-prototype 'ui-text :text "Checkpoint" :anchor (v2! 0.90 0.90) :pos (v2! -100 -20))
+(setf *checkpoint-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 -20)))
+(setf *laps-in-level* 5)
+(setf *next-level* "./res/lvl/loops.lvl")

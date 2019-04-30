@@ -31,3 +31,5 @@
 (setf *lap-counter-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 0)))
 (instantiate-prototype 'ui-text :text "Checkpoint" :anchor (v2! 0.90 0.90) :pos (v2! -100 -20))
 (setf *checkpoint-text* (instantiate-prototype 'ui-text :anchor (v2! 0.90 0.90) :pos (v2! 0 -20)))
+(setf *laps-in-level* 10)
+(setf *next-level* "./res/lvl/main-menu.lvl")
