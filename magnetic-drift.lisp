@@ -67,10 +67,15 @@
   (init-renderer)
   (init-input))
 
+(defun send-repl ()
+  (alexandria:when-let* ((slynk-mrepl (find-package :slynk-mrepl))
+                         (send-prompt (find-symbol "SEND-PROMPT" slynk-mrepl)))
+    (funcall send-prompt (find (bt:current-thread) (slynk::channels)
+                               :key #'slynk::channel-thread))))
+
 (defun run-loop ()
   (init)
-  (slynk-mrepl::send-prompt (find (bt:current-thread) (slynk::channels)
-                                  :key #'slynk::channel-thread))
+  (send-repl)
   (setf *running* t)
   (let* ((fps 120.0f0)
          (seconds-per-frame (/ fps))
